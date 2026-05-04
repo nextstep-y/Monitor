@@ -991,6 +991,8 @@ function parseMainline(rows) {
       ph_prepour:cellVal(c[27]),ph_postpour:cellVal(c[28]),ph_remark:cellVal(c[29]),
       // Bearing Plinths
       br_prepour:cellVal(c[30]),br_postpour:cellVal(c[31]),br_remark:cellVal(c[32]),
+      // PDF scan link (column AH = index 33)
+      pdf_link:cellVal(c[33]),
     });
   }
   console.log('parseMainline:', result.length, 'piers');
@@ -1361,7 +1363,7 @@ function renderTable(key) {
       <td style="text-align:center">${d.pileCount||'—'}</td>
       <td style="text-align:center">${d.pileDia?d.pileDia+' mm':'—'}</td>
       <td>${pileBar(d)}</td>
-      <td>${d.footing?`<span class="mono" style="font-size:0.75rem;color:var(--green)">${d.footing}</span>`:'<span class="muted">—</span>'}</td>
+      <td>${d.footing?(d.pdf_link?`<a href="${d.pdf_link}" target="_blank" rel="noopener" title="Open PDF scan" style="font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--green);text-decoration:none;border-bottom:1px dashed var(--green)">${d.footing} 📄</a>`:`<span class="mono" style="font-size:0.75rem;color:var(--green)">${d.footing}</span>`):'<span class="muted">—</span>'}</td>
       <td>${d.blinding?`<span class="mono" style="font-size:0.75rem;color:var(--green)">${d.blinding}</span>`:'<span class="muted">—</span>'}</td>
       <td>${d.pile_dev_date?`<span class="mono" style="font-size:0.75rem">${d.pile_dev_date}</span>`:'<span class="muted">—</span>'}</td>
       <td>${d.pile_dev_out_loc||'<span class="muted">—</span>'}</td>

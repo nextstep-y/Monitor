@@ -1008,8 +1008,6 @@ function parseMainline(rows) {
     });
   }
   console.log('parseMainline:', result.length, 'piers');
-  const p890 = result.find(d=>d.pier==='P-890');
-  if(p890) console.log('P-890 pdf_footing:', p890.pdf_footing, '| pdf_blinding:', p890.pdf_blinding);
   // DEBUG: log P-893 raw data
   const p893 = result.find(d=>d.pier==='P-893');
   if(p893) {
@@ -1403,8 +1401,8 @@ function renderTable(key) {
       <td style="text-align:center">${d.pileCount||'—'}</td>
       <td style="text-align:center">${d.pileDia?d.pileDia+' mm':'—'}</td>
       <td>${pileBar(d)}</td>
-      <td>${d.footing?(d.pdf_link?`<a href="${d.pdf_link}" target="_blank" rel="noopener" title="Open PDF scan" style="font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--green);text-decoration:none;border-bottom:1px dashed var(--green)">${d.footing} 📄</a>`:`<span class="mono" style="font-size:0.75rem;color:var(--green)">${d.footing}</span>`):'<span class="muted">—</span>'}</td>
-      <td>{d.blinding?(d.pdf_blinding?`<a href="${d.pdf_blinding}" target="_blank" rel="noopener" title="Open PDF: Blinding Concrete" style="font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--green);text-decoration:none;border-bottom:1px dashed var(--green)">${d.blinding} 📄</a>`:`<span class="mono" style="font-size:0.75rem;color:var(--green)">${d.blinding}</span>`):'<span class="muted">—</span>'}</td>
+      <td>${d.footing?(d.pdf_footing?`<a href="${d.pdf_link}" target="_blank" rel="noopener" title="Open PDF scan" style="font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--green);text-decoration:none;border-bottom:1px dashed var(--green)">${d.footing} 📄</a>`:`<span class="mono" style="font-size:0.75rem;color:var(--green)">${d.footing}</span>`):'<span class="muted">—</span>'}</td>
+      <td>${d.blinding?(d.pdf_blinding?`<a href="${d.pdf_blinding}" target="_blank" rel="noopener" title="Open PDF: Blinding Concrete" style="font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--green);text-decoration:none;border-bottom:1px dashed var(--green)">${d.blinding} 📄</a>`:`<span class="mono" style="font-size:0.75rem;color:var(--green)">${d.blinding}</span>`):'<span class="muted">—</span>'}</td>
       <td>${d.pile_dev_date?(d.pdf_piledev?`<a href="${d.pdf_piledev}" target="_blank" rel="noopener" title="Open PDF: Pile Deviate" style="font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--green);text-decoration:none;border-bottom:1px dashed var(--green)">${d.pile_dev_date} 📄</a>`:`<span class="mono" style="font-size:0.75rem">${d.pile_dev_date}</span>`):'<span class="muted">—</span>'}</td>
       <td>${d.pile_dev_out_loc||'<span class="muted">—</span>'}</td>
       <td>${remarkBadge(d.pile_dev_rebar)}</td>

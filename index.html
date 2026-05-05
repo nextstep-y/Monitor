@@ -318,7 +318,7 @@ body.edit-mode .edit-hint{display:flex;}
   <div class="table-card">
     <div class="table-toolbar">
       <div style="display:flex;gap:8px;align-items:center;">
-        <div class="search-wrap"><input class="search-input" id="mainline-search" placeholder="Search pier..." oninput="pageState['mainline'].search=this.value;pageState['mainline'].page=1;renderTable('mainline')"></div>
+        <div class="search-wrap"><input class="search-input" id="mainline-search" placeholder="Search pier..." oninput="pageState['mainline'].search=this.value;pageState['mainline'].page=1;renderTableDebounced('mainline')"></div>
         <div class="filter-group">
           <button class="filter-btn active" onclick="setFilter('mainline','all',this)">All</button>
           <button class="filter-btn" onclick="setFilter('mainline','1500',this)">6×Ø1500</button>
@@ -395,7 +395,7 @@ body.edit-mode .edit-hint{display:flex;}
     <div class="table-card">
       <div class="table-toolbar">
         <div style="display:flex;gap:8px;align-items:center;">
-          <div class="search-wrap"><input class="search-input" id="angeles-search" placeholder="Search..." oninput="pageState['angeles'].search=this.value;pageState['angeles'].page=1;renderTable('angeles')"></div>
+          <div class="search-wrap"><input class="search-input" id="angeles-search" placeholder="Search..." oninput="pageState['angeles'].search=this.value;pageState['angeles'].page=1;renderTableDebounced('angeles')"></div>
           <div class="filter-group">
             <button class="filter-btn active" onclick="setFilter('angeles','all',this)">All</button>
             <button class="filter-btn" onclick="setFilter('angeles','okay',this)">OK</button>
@@ -427,7 +427,7 @@ body.edit-mode .edit-hint{display:flex;}
     <div class="table-card">
       <div class="table-toolbar">
         <div style="display:flex;gap:8px;align-items:center;">
-          <div class="search-wrap"><input class="search-input" id="clark-search" placeholder="Search..." oninput="pageState['clark'].search=this.value;pageState['clark'].page=1;renderTable('clark')"></div>
+          <div class="search-wrap"><input class="search-input" id="clark-search" placeholder="Search..." oninput="pageState['clark'].search=this.value;pageState['clark'].page=1;renderTableDebounced('clark')"></div>
           <div class="filter-group">
             <button class="filter-btn active" onclick="setFilter('clark','all',this)">All</button>
             <button class="filter-btn" onclick="setFilter('clark','okay',this)">OK</button>
@@ -457,7 +457,7 @@ body.edit-mode .edit-hint{display:flex;}
   <div id="tab-battery" style="display:none">
     <div class="table-card">
       <div class="table-toolbar">
-        <div class="search-wrap"><input class="search-input" id="battery-search" placeholder="Search..." oninput="pageState['battery'].search=this.value;pageState['battery'].page=1;renderTable('battery')"></div>
+        <div class="search-wrap"><input class="search-input" id="battery-search" placeholder="Search..." oninput="pageState['battery'].search=this.value;pageState['battery'].page=1;renderTableDebounced('battery')"></div>
         <div style="display:flex;gap:8px;align-items:center;">
           
           <span class="table-count" id="battery-count"></span>
@@ -504,7 +504,7 @@ body.edit-mode .edit-hint{display:flex;}
   <div class="table-card">
     <div class="table-toolbar">
       <div style="display:flex;gap:8px;align-items:center;">
-        <div class="search-wrap"><input class="search-input" id="sub-search" placeholder="Search Point Name..." oninput="pageState['sub'].search=this.value;pageState['sub'].page=1;renderTable('sub')"></div>
+        <div class="search-wrap"><input class="search-input" id="sub-search" placeholder="Search Point Name..." oninput="pageState['sub'].search=this.value;pageState['sub'].page=1;renderTableDebounced('sub')"></div>
       </div>
       <div style="display:flex;gap:8px;align-items:center;">
         <span class="table-count" id="sub-count"></span>
@@ -532,7 +532,7 @@ body.edit-mode .edit-hint{display:flex;}
   <div class="table-card">
     <div class="table-toolbar">
       <div style="display:flex;gap:8px;align-items:center;">
-        <div class="search-wrap"><input class="search-input" id="align-search" placeholder="Search pier..." oninput="pageState['align'].search=this.value;pageState['align'].page=1;renderTable('align')"></div>
+        <div class="search-wrap"><input class="search-input" id="align-search" placeholder="Search pier..." oninput="pageState['align'].search=this.value;pageState['align'].page=1;renderTableDebounced('align')"></div>
         <div class="filter-group">
           <button class="filter-btn active" onclick="setFilter('align','all',this)">All</button>
           <button class="filter-btn" onclick="setFilter('align','done',this)">Has data</button>
@@ -1329,7 +1329,12 @@ function updateSubKPIs() {
   }
 }
 
+// Cache last render hash per table to skip unnecessary re-renders
+const _renderCache = {};
 function renderTable(key) {
+  const cacheKey = key + '|' + (pageState[key]?.page||1) + '|' + (pageState[key]?.search||'') + '|' + (pageState[key]?.filter||'');
+  if(_renderCache[key] === cacheKey) return;
+  _renderCache[key] = cacheKey;
   const data = getFiltered(key);
   const s = pageState[key];
   const start=(s.page-1)*s.perPage;
@@ -1461,7 +1466,7 @@ function renderTable(key) {
   }
 }
 
-function renderAllTables(){['angeles','clark','sub','mainline','battery','align'].forEach(renderTable);}
+function renderAllTables(){Object.keys(_renderCache).forEach(k=>delete _renderCache[k]);['angeles','clark','sub','mainline','battery','align'].forEach(renderTable);}
 
 function setFilter(key,val,btn){
   pageState[key].filter=val;pageState[key].page=1;
@@ -2081,6 +2086,18 @@ function showToast(msg,type){
 // ============================================================
 // INIT
 // ============================================================
+// Debounce utility
+function debounce(fn, ms) {
+  let t;
+  return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
+}
+
+// Debounced renderTable to avoid thrashing on search input
+const _renderTableDebounced = debounce((key) => renderTable(key), 80);
+
+// Override search inputs to use debounced version
+function renderTableDebounced(key) { _renderTableDebounced(key); }
+
 window.addEventListener('DOMContentLoaded',async()=>{
   await loadFromSheets();
   // Init substation view with SS18 by default
@@ -2110,3 +2127,4 @@ window.loadFromSheets = async function() {
 </script>
 </body>
 </html>
+

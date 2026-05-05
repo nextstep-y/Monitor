@@ -1390,9 +1390,14 @@ function renderTable(key) {
       return `<span style="font-family:'DM Mono',monospace;font-size:0.72rem">${date}</span>`;
     }
     function workCellPdf(pre, post, pdf_pre, pdf_post){
-      if(!pre&&!post) return '<span class="muted">—</span>';
+      if(!pre&&!post&&!pdf_pre&&!pdf_post) return '<span class="muted">—</span>';
+      // Both pre and post (with or without PDF links)
       if(pre&&post) return `<div style="font-size:0.72rem"><div style="color:var(--text2)">Pre: ${pdfBtn(pre,pdf_pre,'Pre-Pour')}</div><div style="color:var(--green)">Post: ${pdfBtn(post,pdf_post,'Post-Pour')}</div></div>`;
-      if(post) return pdfBtn(post,pdf_post,'Post-Pour');if(!post&&pdf_post) return `<div style="font-size:0.72rem"><div style="color:var(--text2)">Pre: ${pdfBtn(pre,pdf_pre,'Pre-Pour')}</div><div style="color:var(--green)">Post: ${pdfBtn(post,pdf_post,'Post-Pour')}</div></div>`;
+      // Only post date exists
+      if(post) return pdfBtn(post,pdf_post,'Post-Pour');
+      // Pre date exists, and post PDF link exists but no post date yet — show both rows
+      if(pre&&pdf_post) return `<div style="font-size:0.72rem"><div style="color:var(--text2)">Pre: ${pdfBtn(pre,pdf_pre,'Pre-Pour')}</div><div style="color:var(--gold)">Post: <a href="${pdf_post}" target="_blank" rel="noopener" title="Open PDF: Post-Pour" style="font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--gold);text-decoration:none;border-bottom:1px dashed var(--gold)">📄 PDF</a></div></div>`;
+      // Only pre date (no post yet)
       return `${pdfBtn(pre,pdf_pre,'Pre-Pour')} <span style="font-size:0.65rem;color:var(--gold)">(Pre)</span>`;
     }
     function workCell(pre, post){

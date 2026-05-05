@@ -1384,14 +1384,12 @@ function renderTable(key) {
       return `<span style="font-size:0.72rem;color:var(--text2)" title="${r}">${r.length>22?r.slice(0,20)+'…':r}</span>`;
     }
     function pdfBtn(date, pdfUrl, title){
-      if(!date) return '';
-      if(pdfUrl) return `<a href="${pdfUrl}" target="_blank" rel="noopener" title="Open PDF: ${title}" style="font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--green);text-decoration:none;border-bottom:1px dashed var(--green)">${date} 📄</a>`;
-      return `<span style="font-family:'DM Mono',monospace;font-size:0.72rem">${date}</span>`;
-    }
+  if(!date && !pdfUrl) return '';
+  if(!date && pdfUrl) return `<a href="${pdfUrl}" target="_blank" rel="noopener" title="Open PDF: ${title}" style="font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--green);text-decoration:none;border-bottom:1px dashed var(--green)">📄</a>`;
     function workCellPdf(pre, post, pdf_pre, pdf_post){
       if(!pre&&!post) return '<span class="muted">—</span>';
       if(pre&&post) return `<div style="font-size:0.72rem"><div style="color:var(--text2)">Pre: ${pdfBtn(pre,pdf_pre,'Pre-Pour')}</div><div style="color:var(--green)">Post: ${pdfBtn(post,pdf_post,'Post-Pour')}</div></div>`;
-      if(post) return pdfBtn(post,pdf_post,'Post-Pour');
+      if(post) return pdfBtn(post,pdf_post,'Post-Pour');if(!post&&pdf_post) return `<div style="font-size:0.72rem"><div style="color:var(--text2)">Pre: ${pdfBtn(pre,pdf_pre,'Pre-Pour')}</div><div style="color:var(--green)">Post: ${pdfBtn(post,pdf_post,'Post-Pour')}</div></div>`;
       return `${pdfBtn(pre,pdf_pre,'Pre-Pour')} <span style="font-size:0.65rem;color:var(--gold)">(Pre)</span>`;
     }
     function workCell(pre, post){

@@ -341,7 +341,7 @@ body.edit-mode .edit-hint{display:flex;}
             <th rowspan="2" style="min-width:90px">Blinding<br>Concrete</th>
             <th colspan="3" style="text-align:center;border-bottom:1px solid var(--border)">Pile Deviate</th>
             <th colspan="3" style="text-align:center;border-bottom:1px solid var(--border)">Pile Cap</th>
-            <th colspan="3" style="text-align:center;border-bottom:1px solid var(--border)">Pier Column 1st Lift</th>
+            <th colspan="2" style="text-align:center;border-bottom:1px solid var(--border)">Pier Column 1st Lift</th>
             <th colspan="3" style="text-align:center;border-bottom:1px solid var(--border)">Pier Column 2nd Lift</th>
             <th colspan="3" style="text-align:center;border-bottom:1px solid var(--border)">Pier Head &amp; Seismic</th>
             <th colspan="3" style="text-align:center;border-bottom:1px solid var(--border)">Bearing Plinths</th>
@@ -1427,6 +1427,12 @@ function renderTable(key) {
       // Only pre date (no post yet)
       return `${pdfBtn(pre,pdf_pre,'Pre-Pour')} <span style="font-size:0.65rem;color:var(--gold)">(Pre)</span>`;
     }
+    function datePdfCell(date, pdfUrl, title, color='var(--green)'){
+      if(!date && !pdfUrl) return '<span class="muted">—</span>';
+      if(!date && pdfUrl) return `<a href="${pdfUrl}" target="_blank" rel="noopener" title="Open PDF: ${title}" style="font-family:'DM Mono',monospace;font-size:0.72rem;color:${color};text-decoration:none;border-bottom:1px dashed ${color}">📄 PDF</a>`;
+      if(pdfUrl) return `<a href="${pdfUrl}" target="_blank" rel="noopener" title="Open PDF: ${title}" style="font-family:'DM Mono',monospace;font-size:0.72rem;color:${color};text-decoration:none;border-bottom:1px dashed ${color}">${date} 📄</a>`;
+      return `<span class="mono" style="font-size:0.75rem;color:${color}">${date}</span>`;
+    }
     function workCell(pre, post){
       if(!pre&&!post) return '<span class="muted">—</span>';
       if(pre&&post) return `<div style="font-size:0.72rem"><div style="color:var(--text2)">Pre: <span style="font-family:'DM Mono',monospace">${pre}</span></div><div style="color:var(--green)">Post: <span style="font-family:'DM Mono',monospace">${post}</span></div></div>`;
@@ -1444,14 +1450,19 @@ function renderTable(key) {
       <td>${d.pile_dev_date?(d.pdf_piledev?`<a href="${d.pdf_piledev}" target="_blank" rel="noopener" title="Open PDF: Pile Deviate" style="font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--green);text-decoration:none;border-bottom:1px dashed var(--green)">${d.pile_dev_date} 📄</a>`:`<span class="mono" style="font-size:0.75rem">${d.pile_dev_date}</span>`):'<span class="muted">—</span>'}</td>
       <td>${d.pile_dev_out_loc||'<span class="muted">—</span>'}</td>
       <td>${remarkBadge(d.pile_dev_rebar)}</td>
-      <td>${workCellPdf(d.pc_prepour,d.pc_postpour,d.pdf_pc_pre,d.pdf_pc_post)}</td>
+      <td>${datePdfCell(d.pc_prepour,d.pdf_pc_pre,'Pile Cap Pre-Pour','var(--text2)')}</td>
+      <td>${datePdfCell(d.pc_postpour,d.pdf_pc_post,'Pile Cap Post-Pour','var(--green)')}</td>
       <td>${remarkBadge(d.pc_remark)}</td>
-      <td>${workCellPdf(d.col_1st,d.col_1st_post,d.pdf_col1_pre,d.pdf_col1_post)}</td>
-      <td>${workCellPdf(d.col_2nd,d.col_2nd_post,d.pdf_col2_pre,d.pdf_col2_post)}</td>
+      <td>${datePdfCell(d.col_1st,d.pdf_col1_pre,'Pier Column 1st Lift Pre-Pour','var(--text2)')}</td>
+      <td>${datePdfCell(d.col_1st_post,d.pdf_col1_post,'Pier Column 1st Lift Post-Pour','var(--green)')}</td>
+      <td>${datePdfCell(d.col_2nd,d.pdf_col2_pre,'Pier Column 2nd Lift Pre-Pour','var(--text2)')}</td>
+      <td>${datePdfCell(d.col_2nd_post,d.pdf_col2_post,'Pier Column 2nd Lift Post-Pour','var(--green)')}</td>
       <td>${remarkBadge(d.col_remark)}</td>
-      <td>${workCellPdf(d.ph_prepour,d.ph_postpour,d.pdf_ph_pre,d.pdf_ph_post)}</td>
+      <td>${datePdfCell(d.ph_prepour,d.pdf_ph_pre,'Pier Head Pre-Pour','var(--text2)')}</td>
+      <td>${datePdfCell(d.ph_postpour,d.pdf_ph_post,'Pier Head Post-Pour','var(--green)')}</td>
       <td>${remarkBadge(d.ph_remark)}</td>
-      <td>${workCellPdf(d.br_prepour,d.br_postpour,d.pdf_br_pre,d.pdf_br_post)}</td>
+      <td>${datePdfCell(d.br_prepour,d.pdf_br_pre,'Bearing Plinths Pre-Pour','var(--text2)')}</td>
+      <td>${datePdfCell(d.br_postpour,d.pdf_br_post,'Bearing Plinths Post-Pour','var(--green)')}</td>
       <td>${remarkBadge(d.br_remark)}</td>
     </tr>`).join('');
   } else if(key==='sub'){

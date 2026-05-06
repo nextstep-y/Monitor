@@ -2142,10 +2142,24 @@ const _renderTableDebounced = debounce((key) => renderTable(key), 80);
 // Override search inputs to use debounced version
 function renderTableDebounced(key) { _renderTableDebounced(key); }
 
+function enablePageWheelInsideWideTables() {
+  document.querySelectorAll('.overflow-x').forEach(el => {
+    if(el.dataset.wheelBridge === '1') return;
+    el.dataset.wheelBridge = '1';
+    el.addEventListener('wheel', (e) => {
+      const verticalWheel = Math.abs(e.deltaY) >= Math.abs(e.deltaX);
+      if(!verticalWheel || e.shiftKey) return;
+      e.preventDefault();
+      window.scrollBy({ top: e.deltaY, left: 0, behavior: 'auto' });
+    }, { passive: false });
+  });
+}
+
 window.addEventListener('DOMContentLoaded',async()=>{
   await loadFromSheets();
   // Init substation view with SS18 by default
   selectSubstation('ss18');
+  enablePageWheelInsideWideTables();
 });
 </script>
 

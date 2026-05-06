@@ -981,15 +981,15 @@ function parseMainline(rows) {
       blinding:cellVal(c[15]),
       // Pile Deviate
       pile_dev_date:cellVal(c[16]),pile_dev_out_loc:cellVal(c[17]),pile_dev_rebar:cellVal(c[18]),
-      // Pile Cap
-      pc_prepour:cellVal(c[19]),pc_postpour:cellVal(c[20]),pc_remark:cellVal(c[21]),
-      // Pier Column 1st Lift
-      col_1st:cellVal(c[22]),col_1st_post:cellVal(c[23]),
+      // Pile Cap: c[22]=Pre, c[23]=Post, c[24-26]=merged empty
+      pc_prepour:cellVal(c[22]),pc_postpour:cellVal(c[23]),pc_remark:cellVal(c[24]),
+      // Pier Column 1st Lift: c[24-26] are merged empty in gviz — no separate col fields
+      col_1st:'',col_1st_post:'',
       // Pier Column 2nd Lift
-      col_2nd:cellVal(c[24]),col_2nd_post:cellVal(c[25]),col_remark:cellVal(c[26]),
-      // Pier Head & Seismic Restrainer
+      col_2nd:'',col_2nd_post:'',col_remark:'',
+      // Pier Head: c[27]=Pre, c[28]=Post, c[29]=Remark
       ph_prepour:cellVal(c[27]),ph_postpour:cellVal(c[28]),ph_remark:cellVal(c[29]),
-      // Bearing Plinths
+      // Bearing Plinths: c[30]=Pre, c[31]=Post, c[32]=Remark
       br_prepour:cellVal(c[30]),br_postpour:cellVal(c[31]),br_remark:cellVal(c[32]),
       // PDF scan links (columns AH+ = index 33+)
       pdf_footing:   cellVal(c[33]),

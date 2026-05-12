@@ -201,7 +201,7 @@ body.edit-mode .edit-hint{display:flex;}
 .alert-tabs{display:flex;gap:4px;margin-bottom:1rem;}
 .alert-tab{background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:5px 14px;font-size:0.78rem;cursor:pointer;font-family:'DM Sans',sans-serif;color:var(--text2);transition:all 0.2s;}
 .alert-tab.active{background:var(--accent);color:white;border-color:var(--accent);}
-.alert-search{background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:6px 10px;color:var(--text);font-family:'DM Mono',monospace;font-size:0.78rem;outline:none;width:200px;margin-bottom:0.8rem;}
+.alert-search{background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:6px 10px;color:var(--text);font-family:'DM Mono',monospace;font-size:0.78rem;outline:none;width:min(100%,320px);min-width:220px;margin-bottom:0.8rem;}
 .alert-search:focus{border-color:var(--accent);}
 .alert-empty{color:var(--text3);font-size:0.82rem;padding:1rem;text-align:center;}
 </style>
@@ -1651,12 +1651,6 @@ function renderAlerts(alerts) {
   const el = document.getElementById('pending-alerts-content');
   if(!el) return;
 
-  const src = alerts[_alertTab] || [];
-  const sq  = _alertSearch.toLowerCase();
-  const filtered = sq ? src.filter(a =>
-    a.id.toLowerCase().includes(sq) || a.job.toLowerCase().includes(sq)
-  ) : src;
-
   const ml_count = alerts.mainline.length;
   const al_count = alerts.alignment.length;
 
@@ -1675,19 +1669,45 @@ function renderAlerts(alerts) {
         </button>
       </div>
       <input class="alert-search" placeholder="Search Pier/Span..."
-        value="${_alertSearch}"
-        oninput="_alertSearch=this.value;renderAlerts(window._lastAlerts||{mainline:[],alignment:[]})">
+        value="${escapeHtml(_alertSearch)}"
+        oninput="handleAlertSearchInput(this.value)">
     </div>
 
+    <div id="alert-results">${renderAlertItems(alerts)}</div>
+  `;
+  window._lastAlerts = alerts;
+}
+
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>"']/g, ch => ({
+    '&':'&amp;',
+    '<':'&lt;',
+    '>':'&gt;',
+    '"':'&quot;',
+    "'":'&#39;'
+  }[ch]));
+}
+
+function getFilteredAlerts(alerts) {
+  const src = alerts[_alertTab] || [];
+  const sq = _alertSearch.toLowerCase();
+  return sq ? src.filter(a =>
+    a.id.toLowerCase().includes(sq) || a.job.toLowerCase().includes(sq)
+  ) : src;
+}
+
+function renderAlertItems(alerts) {
+  const filtered = getFilteredAlerts(alerts);
+  return `
     ${filtered.length === 0
       ? `<div class="alert-empty">✅ No pending items in this section</div>`
       : filtered.map(a => `
         <div class="alert-item">
           <div class="alert-dot"></div>
-          <span class="alert-pier">${a.id}</span>
-          <span class="alert-job">${a.job}</span>
+          <span class="alert-pier">${escapeHtml(a.id)}</span>
+          <span class="alert-job">${escapeHtml(a.job)}</span>
           <span style="font-size:0.68rem;color:var(--text3);margin-right:4px">Pre-Pour:</span>
-          <span class="alert-date">${a.date}</span>
+          <span class="alert-date">${escapeHtml(a.date)}</span>
           <span style="font-size:0.68rem;background:rgba(239,68,68,0.1);color:var(--red);
             padding:1px 8px;border-radius:20px;margin-left:4px">Awaiting Post-Pour</span>
         </div>`).join('')
@@ -1696,7 +1716,14 @@ function renderAlerts(alerts) {
       <div style="font-size:0.72rem;color:var(--text3);text-align:right;margin-top:6px;
         font-family:'DM Mono',monospace">${filtered.length} items</div>` : ''}
   `;
-  window._lastAlerts = alerts;
+}
+
+function handleAlertSearchInput(value) {
+  _alertSearch = value;
+  const results = document.getElementById('alert-results');
+  if(results) {
+    results.innerHTML = renderAlertItems(window._lastAlerts || {mainline:[],alignment:[]});
+  }
 }
 
 function setAlertTab(tab) {

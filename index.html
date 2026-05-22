@@ -808,7 +808,8 @@ function fetchGvizJsonp(url, timeoutMs=15000) {
       cleanup();
       reject(new Error('JSONP load failed'));
     };
-    script.src = url.replace('tqx=out:json', 'tqx=out:json;responseHandler:' + cb);
+    const freshUrl = url + (url.includes('?') ? '&' : '?') + '_cb=' + Date.now();
+    script.src = freshUrl.replace('tqx=out:json', 'tqx=out:json;responseHandler:' + cb);
     document.head.appendChild(script);
   });
 }
@@ -849,29 +850,49 @@ function normalizeDateString(input) {
   m = s.match(/^([A-Za-z]{3,9})\s+(\d{1,2}),?\s+(\d{2,4})$/);
   if(m && months[m[1].toLowerCase()]) return out(m[3], months[m[1].toLowerCase()], m[2]);
 
-  // Numeric dates. Prefer unambiguous values; for ambiguous slash dates, match
-  // Google Sheets M/D/YYYY display. For dash dates, match common DD-MM-YYYY text.
+  // Numeric dates. Prefer unambiguous values; for ambiguous text-only slash
+  // dates, use DD/MM/YYYY because the monitoring sheets are maintained that way.
+  // Google gviz Date(...) raw values are handled above, so formatted M/D/YYYY
+  // display from real date cells still resolves from the raw date value first.
   m = s.match(/^(\d{1,2})([\/-])(\d{1,2})\2(\d{2,4})$/);
   if(m) {
     const a = Number(m[1]), b = Number(m[3]), sep = m[2], y = m[4];
     if(a > 12) return out(y, b, a);       // 31/05/2024 or 31-05-2024
     if(b > 12) return out(y, a, b);       // 05/31/2024
-    return sep === '-' ? out(y, b, a) : out(y, a, b);
+    return out(y, b, a);
   }
 
   return '';
 }
 
+function normalizeExcelSerialDate(input) {
+  if(input === null || input === undefined || input === '') return '';
+  const n = Number(input);
+  if(!Number.isFinite(n) || n < 20000 || n > 80000) return '';
+  const date = new Date(Date.UTC(1899, 11, 30));
+  date.setUTCDate(date.getUTCDate() + Math.floor(n));
+  return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2,'0')}-${String(date.getUTCDate()).padStart(2,'0')}`;
+}
+
 function cellVal(cell) {
   if(cell === null || cell === undefined || !cell) return '';
-  if(cell.v === null || cell.v === undefined) return '';
-  const v = cell.v;
 
-  const fromRaw = normalizeDateString(v);
-  if(fromRaw) return fromRaw;
+  if(cell.v !== null && cell.v !== undefined) {
+    const fromRaw = normalizeDateString(cell.v);
+    if(fromRaw) return fromRaw;
+  }
 
   const fromFormatted = normalizeDateString(cell.f);
   if(fromFormatted) return fromFormatted;
+
+  const fromFormattedSerial = normalizeExcelSerialDate(cell.f);
+  if(fromFormattedSerial) return fromFormattedSerial;
+
+  if(cell.v === null || cell.v === undefined) return '';
+  const v = cell.v;
+
+  const fromRawSerial = normalizeExcelSerialDate(v);
+  if(fromRawSerial) return fromRawSerial;
 
   return String(v).trim();
 }
@@ -938,7 +959,7 @@ async function loadFromSheets() {
     const batRows = await fetchTabSafe(TAB_NAMES.battery, 'A:M');
 
     update('Loading Final Alignment...');
-    const alRows  = await fetchTabSafe(TAB_NAMES.align);
+    const alRows  = await fetchTabSafe(TAB_NAMES.align, 'A:N');
 
     const ml  = parseMainline(mlRows);
     const ang = parsePiles(angRows, 0);
@@ -1149,23 +1170,9 @@ function parseBattery(rows) {
 
 // ── PARSE ALIGNMENT ──────────────────────────────────────────
 function parseAlignment(rows) {
-  // ══════════════════════════════════════════════════
-  // COLUMN MAPPING — gviz SKIPS empty col C (REMARKS)
-  // so all cols from D onwards shift left by 1
-  //
-  // gviz index → Sheet column
-  // c[0]  → Col A : SPAN NO.
-  // c[1]  → Col B : Elastomeric
-  // c[2]  → Col D : Final Alignment  (C skipped — empty)
-  // c[3]  → Col E : PRE POUR UPSTAND
-  // c[4]  → Col F : PRE POUR OCS
-  // c[5]  → Col G : POST POUR UPSTAND
-  // c[6]  → Col H : POST POUR OCS
-  // c[7]  → Col I : Elastomeric Status
-  // c[8]  → Col J : Final Alignment Status
-  // c[9]  → Col K : UPSTAND Status
-  // c[10] → Col L : OCS Status
-  // ══════════════════════════════════════════════════
+  // Sheet columns:
+  // A Span, B Elastomeric, C Final Alignment, D/E Check Form Work,
+  // F/G As-Built, H-K status columns, L-N PDF/link columns.
   const result = [];
   let id = 1;
   for(let i = 0; i < rows.length; i++) {
@@ -1176,33 +1183,27 @@ function parseAlignment(rows) {
       id: id++,
       pile: span, span: span,
       elasto:          cellVal(c[1]),   // Col B : Elastomeric date
-      elasto_remark:   '',              // Col C : empty — skipped by gviz
-      final_align:     cellVal(c[2]),   // Col D : Final Alignment date
+      elasto_remark:   '',
+      final_align:     cellVal(c[2]),   // Col C : Final Alignment date
       align_remark:    cellVal(c[2]),
-      pre_upstand:     cellVal(c[3]),   // Col E : PRE POUR UPSTAND
+      pre_upstand:     cellVal(c[3]),   // Col D : CF UPSTAND
       cf_upstand:      cellVal(c[3]),
-      pre_ocs:         cellVal(c[4]),   // Col F : PRE POUR OCS
+      pre_ocs:         cellVal(c[4]),   // Col E : CF OCS
       cf_ocs:          cellVal(c[4]),
-      post_upstand:    cellVal(c[5]),   // Col G : POST POUR UPSTAND
+      post_upstand:    cellVal(c[5]),   // Col F : As-Built UPSTAND
       asbuilt_upstand: cellVal(c[5]),
-      post_ocs:        cellVal(c[6]),   // Col H : POST POUR OCS
+      post_ocs:        cellVal(c[6]),   // Col G : As-Built OCS
       asbuilt_ocs:     cellVal(c[6]),
-      elasto_status:   cellVal(c[7]),   // Col I : Elastomeric Status
-      align_status:    cellVal(c[8]),   // Col J : Final Alignment Status
-      upstand_status:  cellVal(c[9]),   // Col K : UPSTAND Status
-      ocs_status:      cellVal(c[10]),  // Col L : OCS Status
-      pdf_elasto:      cellVal(c[11]),  // Col M : PDF Elastomeric
-      pdf_final_align: cellVal(c[12]),  // Col N : PDF Final Alignment
-      pdf_pre_upstand: cellVal(c[13]),  // Col O : PDF Pre-Pour UPSTAND
-      pdf_pre_ocs:     cellVal(c[14]),  // Col P : PDF Pre-Pour OCS
-      pdf_post_upstand:cellVal(c[15]),  // Col Q : PDF Post-Pour UPSTAND
-      pdf_post_ocs:    cellVal(c[16]),  // Col R : PDF Post-Pour OCS
-      pdf_elasto:      cellVal(c[11]),  // Col M : PDF Elastomeric
-      pdf_final_align: cellVal(c[12]),  // Col N : PDF Final Alignment
-      pdf_pre_upstand: cellVal(c[13]),  // Col O : PDF Pre-Pour UPSTAND
-      pdf_pre_ocs:     cellVal(c[14]),  // Col P : PDF Pre-Pour OCS
-      pdf_post_upstand:cellVal(c[15]),  // Col Q : PDF Post-Pour UPSTAND
-      pdf_post_ocs:    cellVal(c[16]),  // Col R : PDF Post-Pour OCS
+      elasto_status:   cellVal(c[7]),   // Col H : Elastomeric Status
+      align_status:    cellVal(c[8]),   // Col I : Final Alignment Status
+      upstand_status:  cellVal(c[9]),   // Col J : UPSTAND Status
+      ocs_status:      cellVal(c[10]),  // Col K : OCS Status
+      pdf_elasto:      cellVal(c[11]),  // Col L : PDF Elastomeric
+      pdf_final_align: cellVal(c[12]),  // Col M : PDF Final Alignment
+      pdf_pre_upstand: cellVal(c[13]),  // Col N : PDF Pre-Pour UPSTAND
+      pdf_pre_ocs:     cellVal(c[14]),  // Optional beyond N
+      pdf_post_upstand:cellVal(c[15]),
+      pdf_post_ocs:    cellVal(c[16]),
     });
   }
   console.log(`parseAlignment: ${rows.length} raw rows → ${result.length} spans`);
@@ -1649,9 +1650,11 @@ function buildPendingAlerts() {
 
   // ── Alignment: Pre done, Post pending ──
   DB.align.forEach(d => {
-    if(d.pre_upstand && !d.post_upstand)
+    const upstandDone = d.post_upstand || d.asbuilt_upstand || d.upstand_status;
+    const ocsDone = d.post_ocs || d.asbuilt_ocs || d.ocs_status;
+    if(d.pre_upstand && !upstandDone)
       alerts.alignment.push({ id: d.pile, job: 'Parapet UPSTAND', date: d.pre_upstand });
-    if(d.pre_ocs && !d.post_ocs)
+    if(d.pre_ocs && !ocsDone)
       alerts.alignment.push({ id: d.pile, job: 'Parapet OCS', date: d.pre_ocs });
   });
 

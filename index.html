@@ -583,6 +583,7 @@ body.edit-mode .edit-hint{display:flex;}
   </div>
 </div>
 
+<script src="./alignment-pdf-index.js"></script>
 <script>
 // ============================================================
 // DEFAULT DATA
@@ -798,6 +799,40 @@ const ALIGNMENT_ASBUILT_OVERRIDES = {
   'P-1139-P-1140': { post_upstand: '18-Feb-26' },
   'P-1140-P-1141': { post_upstand: '11-Feb-26' },
 };
+
+function normalizeAlignmentPdfKey(span) {
+  if(!span) return '';
+  const tokens = String(span).toUpperCase().match(/P-\d+[A-Z]*/g);
+  if(!tokens || tokens.length < 2) return '';
+  return `${tokens[0]}-${tokens[1]}`;
+}
+
+function stripMainLinePdfSuffix(key) {
+  return key ? key.replace(/ML\b/g, '') : '';
+}
+
+function reverseAlignmentPdfKey(key) {
+  const m = String(key || '').match(/^(P-\d+[A-Z]*)-(P-\d+[A-Z]*)$/);
+  return m ? `${m[2]}-${m[1]}` : '';
+}
+
+function lookupAlignmentPdf(span, type) {
+  const index = (typeof ALIGNMENT_PDF_INDEX !== 'undefined') ? ALIGNMENT_PDF_INDEX : {};
+  const map = index[type] || {};
+  const key = normalizeAlignmentPdfKey(span);
+  if(!key) return '';
+  const baseKey = stripMainLinePdfSuffix(key);
+  const candidates = [
+    key,
+    baseKey,
+    reverseAlignmentPdfKey(key),
+    reverseAlignmentPdfKey(baseKey)
+  ].filter(Boolean);
+  for(const candidate of candidates) {
+    if(map[candidate]) return map[candidate];
+  }
+  return '';
+}
 
 function setStatus(state, msg) {
   const dot = document.getElementById('status-dot');
@@ -1249,12 +1284,12 @@ function parseAlignment(rows) {
       align_status:    cellVal(c[8]),   // Col I : Final Alignment Status
       upstand_status:  cellVal(c[9]),   // Col J : UPSTAND Status
       ocs_status:      cellVal(c[10]),  // Col K : OCS Status
-      pdf_elasto:      cellVal(c[11]),  // Col L : PDF Elastomeric
-      pdf_final_align: cellVal(c[12]),  // Col M : PDF Final Alignment
-      pdf_pre_upstand: cellVal(c[13]),  // Col N : PDF Pre-Pour UPSTAND
-      pdf_pre_ocs:     cellVal(c[14]),  // Optional beyond N
-      pdf_post_upstand:cellVal(c[15]),
-      pdf_post_ocs:    cellVal(c[16]),
+      pdf_elasto:      cellVal(c[11]) || lookupAlignmentPdf(span, 'elasto'),       // Col L or local PDF index
+      pdf_final_align: cellVal(c[12]) || lookupAlignmentPdf(span, 'final_align'),  // Col M or local PDF index
+      pdf_pre_upstand: cellVal(c[13]) || lookupAlignmentPdf(span, 'pre_upstand'),  // Col N or local PDF index
+      pdf_pre_ocs:     cellVal(c[14]) || lookupAlignmentPdf(span, 'pre_ocs'),
+      pdf_post_upstand:cellVal(c[15]) || lookupAlignmentPdf(span, 'post_upstand'),
+      pdf_post_ocs:    cellVal(c[16]) || lookupAlignmentPdf(span, 'post_ocs'),
     });
   }
   console.log(`parseAlignment: ${rows.length} raw rows → ${result.length} spans`);

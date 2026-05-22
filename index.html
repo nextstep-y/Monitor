@@ -813,51 +813,67 @@ function fetchGvizJsonp(url, timeoutMs=15000) {
   });
 }
 
+function normalizeDateString(input) {
+  if(input === null || input === undefined) return '';
+  let s = String(input).trim();
+  if(!s) return '';
+
+  const months = {
+    jan:1,january:1,feb:2,february:2,mar:3,march:3,apr:4,april:4,
+    may:5,jun:6,june:6,jul:7,july:7,aug:8,august:8,sep:9,sept:9,september:9,
+    oct:10,october:10,nov:11,november:11,dec:12,december:12
+  };
+  const out = (y,m,d) => {
+    y = Number(y); m = Number(m); d = Number(d);
+    if(y < 100) y += 2000;
+    if(y < 1900 || y > 2100 || m < 1 || m > 12 || d < 1 || d > 31) return '';
+    return `${String(y).padStart(4,'0')}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+  };
+
+  // Google gviz date value: Date(2025,8,16), month is 0-indexed.
+  let m = s.match(/^Date\((\d{4}),(\d{1,2}),(\d{1,2})\)$/);
+  if(m) return out(m[1], Number(m[2]) + 1, m[3]);
+
+  // Already normalized.
+  if(/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+
+  // Some date cells were typed with a pier prefix, e.g. "P903 - 11/Nov/25".
+  const prefixed = s.match(/^P-?\d+[A-Za-z]*\s*[-–]\s*(.+)$/i);
+  if(prefixed) s = prefixed[1].trim();
+
+  // DD/Mon/YY, DD-Mon-YY, DD Mon YYYY.
+  m = s.match(/^(\d{1,2})[\/\-\s]([A-Za-z]{3,9})[\/\-\s](\d{2,4})$/);
+  if(m && months[m[2].toLowerCase()]) return out(m[3], months[m[2].toLowerCase()], m[1]);
+
+  // Month D, YYYY.
+  m = s.match(/^([A-Za-z]{3,9})\s+(\d{1,2}),?\s+(\d{2,4})$/);
+  if(m && months[m[1].toLowerCase()]) return out(m[3], months[m[1].toLowerCase()], m[2]);
+
+  // Numeric dates. Prefer unambiguous values; for ambiguous slash dates, match
+  // Google Sheets M/D/YYYY display. For dash dates, match common DD-MM-YYYY text.
+  m = s.match(/^(\d{1,2})([\/-])(\d{1,2})\2(\d{2,4})$/);
+  if(m) {
+    const a = Number(m[1]), b = Number(m[3]), sep = m[2], y = m[4];
+    if(a > 12) return out(y, b, a);       // 31/05/2024 or 31-05-2024
+    if(b > 12) return out(y, a, b);       // 05/31/2024
+    return sep === '-' ? out(y, b, a) : out(y, a, b);
+  }
+
+  return '';
+}
+
 function cellVal(cell) {
   if(cell === null || cell === undefined || !cell) return '';
   if(cell.v === null || cell.v === undefined) return '';
   const v = cell.v;
 
-  // Case 1: gviz date type — JS Date object
-  if(cell.t === 'd') {
-    try {
-      const d = new Date(v);
-      if(!isNaN(d)) {
-        const y  = d.getFullYear();
-        const mo = String(d.getMonth()+1).padStart(2,'0');
-        const dy = String(d.getDate()).padStart(2,'0');
-        return `${y}-${mo}-${dy}`;
-      }
-    } catch(e) {}
-  }
+  const fromRaw = normalizeDateString(v);
+  if(fromRaw) return fromRaw;
 
-  const s = String(v).trim();
-  if(!s) return '';
+  const fromFormatted = normalizeDateString(cell.f);
+  if(fromFormatted) return fromFormatted;
 
-  // Case 2: "Date(2025,8,16)" string — month is 0-indexed
-  const dm = s.match(/^Date\((\d{4}),(\d{1,2}),(\d{1,2})\)$/);
-  if(dm) {
-    const y  = dm[1];
-    const mo = String(parseInt(dm[2]) + 1).padStart(2,'0');
-    const dy = String(parseInt(dm[3])).padStart(2,'0');
-    return `${y}-${mo}-${dy}`;
-  }
-
-  // Case 3: "29/Aug/25" or "26/Apr/25" — DD/Mon/YY format from Sheets
-  const months = {jan:1,feb:2,mar:3,apr:4,may:5,jun:6,
-                  jul:7,aug:8,sep:9,oct:10,nov:11,dec:12};
-  const d3 = s.match(/^(\d{1,2})\/(\w{3})\/(\d{2,4})$/);
-  if(d3) {
-    const day = String(parseInt(d3[1])).padStart(2,'0');
-    const mon = months[d3[2].toLowerCase()];
-    const yr  = d3[3].length === 2 ? '20' + d3[3] : d3[3];
-    if(mon) return `${yr}-${String(mon).padStart(2,'0')}-${day}`;
-  }
-
-  // Case 4: "2025-04-25" already correct
-  if(/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
-
-  return s;
+  return String(v).trim();
 }
 
 // ── FETCH ONE TAB ─────────────────────────────────────────────

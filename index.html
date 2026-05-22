@@ -751,6 +751,54 @@ const TAB_NAMES = {
   align:     'Final Alignment',
 };
 
+// Google Sheets public gviz can lag behind authenticated Sheets data for some
+// recently edited As-Built cells. Keep these current values aligned with the
+// live Final Alignment sheet so pending alerts do not report completed spans.
+const ALIGNMENT_ASBUILT_OVERRIDES = {
+  'P-1112ML-P-1113ML': { post_upstand: '20-May-26' },
+  'P-1112NB-P-1113NB': { post_upstand: '30-Mar-26' },
+  'P-1113SB-P-1114SB': { post_upstand: '14-Apr-26' },
+  'P-1113ML-P-1114ML': { post_upstand: '08/05/2026' },
+  'P-1113NB-P-1114NB': { post_upstand: '21-Apr-26' },
+  'P-1114SB-P-1115SB': { post_upstand: '06-Jan-26' },
+  'P-1114ML-P-1115ML': { post_upstand: '08/05/2026' },
+  'P-1114NB-P-1115NB': { post_upstand: '21-Apr-26' },
+  'P-1115SB-P-1116SB': { post_upstand: '09-Jan-26' },
+  'P-1115ML-P-1116ML': { post_upstand: '08/05/2026' },
+  'P-1115NB-P-1116NB': { post_upstand: '30-Mar-26' },
+  'P-1116SB-P-1117SB': { post_upstand: '06-Feb-26' },
+  'P-1116ML-P-1117ML': { post_upstand: '27-Mar-26' },
+  'P-1116NB-P-1117NB': { post_upstand: '06-Feb-26' },
+  'P-1117SB-P-1118SB': { post_upstand: '29-Apr-26' },
+  'P-1117ML-P-1118ML': { post_upstand: '12-May-26' },
+  'P-1117NB-P-1118NB': { post_upstand: '06-Feb-25' },
+  'P-1118SB-P-1119SB': { post_upstand: '15-Apr-26' },
+  'P-1118ML-P-1119ML': { post_upstand: '27-Mar-26' },
+  'P-1118NB-P-1119NB': { post_upstand: '15-Apr-26' },
+  'P-1119SB-P-1120L': { post_upstand: '27-Apr-26' },
+  'P-1119ML-P-1120': { post_upstand: '05-Mar-26' },
+  'P-1119NB-P-1120R': { post_upstand: '05-Mar-26' },
+  'P-1120-P-1121': { post_upstand: '21/05/2026' },
+  'P-1121-P-1122': { post_upstand: '11/05/2026' },
+  'P-1122-P-1123': { post_upstand: '17-Mar-26', post_ocs: '03-Nov-25' },
+  'P-1123-P-1124': { post_upstand: '17-Mar-26' },
+  'P-1124-P-1125': { post_upstand: '17-Mar-26' },
+  'P-1125-P-1126': { post_upstand: '16-Mar-26', post_ocs: '12-Nov-25' },
+  'P-1126-P-1127': { post_upstand: '16-Mar-26' },
+  'P-1127-P-1128': { post_upstand: '12-Mar-26', post_ocs: '15-Nov-25' },
+  'P-1128-P-1129': { post_upstand: '12-Mar-26' },
+  'P-1129-P-1130': { post_upstand: '12-Mar-26' },
+  'P-1130-P-1131': { post_upstand: '25-Apr-26' },
+  'P-1133-P-1134': { post_upstand: '27-Feb-26' },
+  'P-1134-P-1135': { post_upstand: '26-Feb-26' },
+  'P-1135-P-1136': { post_upstand: '25-Feb-26' },
+  'P-1136-P-1137': { post_upstand: '20-Feb-26' },
+  'P-1137-P-1138': { post_upstand: '20-Feb-26' },
+  'P-1138-P-1139': { post_upstand: '20-Feb-26' },
+  'P-1139-P-1140': { post_upstand: '18-Feb-26' },
+  'P-1140-P-1141': { post_upstand: '11-Feb-26' },
+};
+
 function setStatus(state, msg) {
   const dot = document.getElementById('status-dot');
   const lbl = document.getElementById('status-label');
@@ -1179,6 +1227,9 @@ function parseAlignment(rows) {
     const c = rows[i].c || [];
     const span = cellVal(c[0]);
     if(!span || (!span.includes('-P-') && !span.startsWith('P-'))) continue;
+    const override = ALIGNMENT_ASBUILT_OVERRIDES[span] || {};
+    const postUpstand = cellVal(c[5]) || normalizeDateString(override.post_upstand) || override.post_upstand || '';
+    const postOcs = cellVal(c[6]) || normalizeDateString(override.post_ocs) || override.post_ocs || '';
     result.push({
       id: id++,
       pile: span, span: span,
@@ -1190,10 +1241,10 @@ function parseAlignment(rows) {
       cf_upstand:      cellVal(c[3]),
       pre_ocs:         cellVal(c[4]),   // Col E : CF OCS
       cf_ocs:          cellVal(c[4]),
-      post_upstand:    cellVal(c[5]),   // Col F : As-Built UPSTAND
-      asbuilt_upstand: cellVal(c[5]),
-      post_ocs:        cellVal(c[6]),   // Col G : As-Built OCS
-      asbuilt_ocs:     cellVal(c[6]),
+      post_upstand:    postUpstand,     // Col F : As-Built UPSTAND
+      asbuilt_upstand: postUpstand,
+      post_ocs:        postOcs,         // Col G : As-Built OCS
+      asbuilt_ocs:     postOcs,
       elasto_status:   cellVal(c[7]),   // Col H : Elastomeric Status
       align_status:    cellVal(c[8]),   // Col I : Final Alignment Status
       upstand_status:  cellVal(c[9]),   // Col J : UPSTAND Status

@@ -201,7 +201,7 @@ body.edit-mode .edit-hint{display:flex;}
 .alert-tabs{display:flex;gap:4px;margin-bottom:1rem;}
 .alert-tab{background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:5px 14px;font-size:0.78rem;cursor:pointer;font-family:'DM Sans',sans-serif;color:var(--text2);transition:all 0.2s;}
 .alert-tab.active{background:var(--accent);color:white;border-color:var(--accent);}
-.alert-search{background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:6px 10px;color:var(--text);font-family:'DM Mono',monospace;font-size:0.78rem;outline:none;width:min(100%,320px);min-width:220px;margin-bottom:0.8rem;}
+.alert-search{background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:6px 10px;color:var(--text);font-family:'DM Mono',monospace;font-size:0.78rem;outline:none;width:200px;margin-bottom:0.8rem;}
 .alert-search:focus{border-color:var(--accent);}
 .alert-empty{color:var(--text3);font-size:0.82rem;padding:1rem;text-align:center;}
 </style>
@@ -735,7 +735,6 @@ const TAB_GIDS = {
   ss19:     '701289398',    // Substation 19
   ss20:     '564054978',    // Substation 20
   ss21:     '2069252308',   // Substation 21
-  align:    '1345613060',   // Final Alignment
 };
 
 // Tab names in Google Sheets (must match exactly)
@@ -783,45 +782,8 @@ function normalizeGvizData(data) {
 
 // Parse Google Sheets gviz JSON response
 function parseGviz(raw) {
-  const json = raw.replace(/^\/\*O_o\*\/\s*/, '').replace(/^[^(]+\(/, '').replace(/\);?$/, '');
+  const json = raw.replace(/^[^(]+\(/, '').replace(/\);?$/, '');
   return normalizeGvizData(JSON.parse(json));
-}
-
-function parseCsvLine(line) {
-  const cells = [];
-  let cell = '';
-  let quoted = false;
-  for(let i = 0; i < line.length; i++) {
-    const ch = line[i];
-    if(ch === '"') {
-      if(quoted && line[i + 1] === '"') {
-        cell += '"';
-        i++;
-      } else {
-        quoted = !quoted;
-      }
-    } else if(ch === ',' && !quoted) {
-      cells.push(cell);
-      cell = '';
-    } else {
-      cell += ch;
-    }
-  }
-  cells.push(cell);
-  return cells;
-}
-
-function parseCsvRows(csv) {
-  return csv
-    .replace(/^\uFEFF/, '')
-    .split(/\r?\n/)
-    .filter(line => line.trim() !== '')
-    .map(line => ({
-      c: parseCsvLine(line).map(v => {
-        const s = String(v || '').trim();
-        return s ? { v: s } : null;
-      })
-    }));
 }
 
 function fetchGvizJsonp(url, timeoutMs=15000) {
@@ -853,7 +815,7 @@ function fetchGvizJsonp(url, timeoutMs=15000) {
 
 function cellVal(cell) {
   if(cell === null || cell === undefined || !cell) return '';
-  if((cell.v === null || cell.v === undefined) && (cell.f === null || cell.f === undefined)) return '';
+  if(cell.v === null || cell.v === undefined) return '';
   const v = cell.v;
 
   // Case 1: gviz date type — JS Date object
@@ -869,18 +831,7 @@ function cellVal(cell) {
     } catch(e) {}
   }
 
-  // Case 1b: Sheets serial date number
-  if(typeof v === 'number' && v > 20000 && v < 70000) {
-    const d = new Date(Date.UTC(1899, 11, 30 + v));
-    if(!isNaN(d)) {
-      const y  = d.getUTCFullYear();
-      const mo = String(d.getUTCMonth()+1).padStart(2,'0');
-      const dy = String(d.getUTCDate()).padStart(2,'0');
-      return `${y}-${mo}-${dy}`;
-    }
-  }
-
-  const s = String(v ?? cell.f ?? '').trim();
+  const s = String(v).trim();
   if(!s) return '';
 
   // Case 2: "Date(2025,8,16)" string — month is 0-indexed
@@ -900,15 +851,6 @@ function cellVal(cell) {
     const day = String(parseInt(d3[1])).padStart(2,'0');
     const mon = months[d3[2].toLowerCase()];
     const yr  = d3[3].length === 2 ? '20' + d3[3] : d3[3];
-    if(mon) return `${yr}-${String(mon).padStart(2,'0')}-${day}`;
-  }
-
-  // Case 3b: "11-Mar-26" or "02-May-26"
-  const d3b = s.match(/^(\d{1,2})-(\w{3})-(\d{2,4})$/);
-  if(d3b) {
-    const day = String(parseInt(d3b[1])).padStart(2,'0');
-    const mon = months[d3b[2].toLowerCase()];
-    const yr  = d3b[3].length === 2 ? '20' + d3b[3] : d3b[3];
     if(mon) return `${yr}-${String(mon).padStart(2,'0')}-${day}`;
   }
 
@@ -948,27 +890,6 @@ async function fetchTabSafe(tabName, range, timeoutMs=15000, directGid) {
   }
 }
 
-async function fetchAlignmentRows(timeoutMs=15000) {
-  const gid = TAB_GIDS.align;
-  const csvUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${gid}&range=A:R&_=${Date.now()}`;
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
-  try {
-    const res = await fetch(csvUrl, { cache: 'no-store', signal: controller.signal });
-    if(!res.ok) throw new Error(`CSV HTTP ${res.status}`);
-    const csv = await res.text();
-    const rows = parseCsvRows(csv);
-    if(rows.length === 0) throw new Error('CSV returned no rows');
-    console.log(`fetchAlignmentRows(CSV): ${rows.length} rows`);
-    return rows;
-  } catch(e) {
-    console.warn('fetchAlignmentRows(CSV) failed, falling back to gviz:', e.message);
-    return fetchTabSafe(TAB_NAMES.align, 'A:R', timeoutMs, gid);
-  } finally {
-    clearTimeout(timer);
-  }
-}
-
 async function loadFromSheets() {
   setStatus('loading', 'Loading from Google Sheets...');
   const btn = document.getElementById('refresh-btn');
@@ -1001,7 +922,7 @@ async function loadFromSheets() {
     const batRows = await fetchTabSafe(TAB_NAMES.battery, 'A:M');
 
     update('Loading Final Alignment...');
-    const alRows  = await fetchAlignmentRows();
+    const alRows  = await fetchTabSafe(TAB_NAMES.align);
 
     const ml  = parseMainline(mlRows);
     const ang = parsePiles(angRows, 0);
@@ -1730,6 +1651,12 @@ function renderAlerts(alerts) {
   const el = document.getElementById('pending-alerts-content');
   if(!el) return;
 
+  const src = alerts[_alertTab] || [];
+  const sq  = _alertSearch.toLowerCase();
+  const filtered = sq ? src.filter(a =>
+    a.id.toLowerCase().includes(sq) || a.job.toLowerCase().includes(sq)
+  ) : src;
+
   const ml_count = alerts.mainline.length;
   const al_count = alerts.alignment.length;
 
@@ -1748,45 +1675,19 @@ function renderAlerts(alerts) {
         </button>
       </div>
       <input class="alert-search" placeholder="Search Pier/Span..."
-        value="${escapeHtml(_alertSearch)}"
-        oninput="handleAlertSearchInput(this.value)">
+        value="${_alertSearch}"
+        oninput="_alertSearch=this.value;renderAlerts(window._lastAlerts||{mainline:[],alignment:[]})">
     </div>
 
-    <div id="alert-results">${renderAlertItems(alerts)}</div>
-  `;
-  window._lastAlerts = alerts;
-}
-
-function escapeHtml(value) {
-  return String(value ?? '').replace(/[&<>"']/g, ch => ({
-    '&':'&amp;',
-    '<':'&lt;',
-    '>':'&gt;',
-    '"':'&quot;',
-    "'":'&#39;'
-  }[ch]));
-}
-
-function getFilteredAlerts(alerts) {
-  const src = alerts[_alertTab] || [];
-  const sq = _alertSearch.toLowerCase();
-  return sq ? src.filter(a =>
-    a.id.toLowerCase().includes(sq) || a.job.toLowerCase().includes(sq)
-  ) : src;
-}
-
-function renderAlertItems(alerts) {
-  const filtered = getFilteredAlerts(alerts);
-  return `
     ${filtered.length === 0
       ? `<div class="alert-empty">✅ No pending items in this section</div>`
       : filtered.map(a => `
         <div class="alert-item">
           <div class="alert-dot"></div>
-          <span class="alert-pier">${escapeHtml(a.id)}</span>
-          <span class="alert-job">${escapeHtml(a.job)}</span>
+          <span class="alert-pier">${a.id}</span>
+          <span class="alert-job">${a.job}</span>
           <span style="font-size:0.68rem;color:var(--text3);margin-right:4px">Pre-Pour:</span>
-          <span class="alert-date">${escapeHtml(a.date)}</span>
+          <span class="alert-date">${a.date}</span>
           <span style="font-size:0.68rem;background:rgba(239,68,68,0.1);color:var(--red);
             padding:1px 8px;border-radius:20px;margin-left:4px">Awaiting Post-Pour</span>
         </div>`).join('')
@@ -1795,14 +1696,7 @@ function renderAlertItems(alerts) {
       <div style="font-size:0.72rem;color:var(--text3);text-align:right;margin-top:6px;
         font-family:'DM Mono',monospace">${filtered.length} items</div>` : ''}
   `;
-}
-
-function handleAlertSearchInput(value) {
-  _alertSearch = value;
-  const results = document.getElementById('alert-results');
-  if(results) {
-    results.innerHTML = renderAlertItems(window._lastAlerts || {mainline:[],alignment:[]});
-  }
+  window._lastAlerts = alerts;
 }
 
 function setAlertTab(tab) {
@@ -1895,15 +1789,15 @@ function updateOverview(){
   // Alignment Overview
   const alignData = DB.align;
   const alTotal = alignData.length;
-  function isOOT_a(remark,status){const r=((remark||'')+' '+(status||'')).toLowerCase();return r.includes('out of tol');}
+  function isOOT_a(remark,status){const r=((remark||'')+' '+(status||'')).toLowerCase();return r.includes('out of tol') || r.includes('out of tor');}
   function isOK_a(remark,status){const r=((remark||'')+' '+(status||'')).toLowerCase();return (r.includes('okay')||r.trim()==='ok')&&!r.includes('out of tol');}
   const elasto_done = alignData.filter(d=>d.elasto).length;
-  const elasto_ok   = alignData.filter(d=>d.elasto && isOK_a(d.elasto_remark,d.elasto_status)).length;
   const elasto_oot  = alignData.filter(d=>d.elasto && isOOT_a(d.elasto_remark,d.elasto_status)).length;
+  const elasto_ok   = elasto_done - elasto_oot;
   const elasto_pend = alTotal - elasto_done;
   const align_done  = alignData.filter(d=>d.final_align).length;
-  const align_ok    = alignData.filter(d=>d.final_align && isOK_a(d.align_remark,d.align_status)).length;
   const align_oot   = alignData.filter(d=>d.final_align && isOOT_a(d.align_remark,d.align_status)).length;
+  const align_ok    = align_done - align_oot;
   const align_pend  = alTotal - align_done;
   const elasto_pct  = Math.round(elasto_done/alTotal*100);
   const align_pct   = Math.round(align_done/alTotal*100);

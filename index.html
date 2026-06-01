@@ -800,6 +800,27 @@ const ALIGNMENT_ASBUILT_OVERRIDES = {
   'P-1140-P-1141': { post_upstand: '11-Feb-26' },
 };
 
+// Some newly uploaded Main Line records can reach the public sheet feed as a
+// PDF link before the date cell is exposed. Keep spot fixes here when the PDF
+// has been verified directly from the synced survey files.
+const MAINLINE_DATE_OVERRIDES = {
+  'P-1094': { pc_prepour: '29/May/26' },
+};
+
+function hasSheetData(record, valueKey, pdfKey) {
+  return !!(record && (record[valueKey] || (pdfKey && record[pdfKey])));
+}
+
+function sheetDataLabel(record, valueKey, pdfKey) {
+  if(!record) return '';
+  return record[valueKey] || (pdfKey && record[pdfKey] ? 'PDF' : '');
+}
+
+function firstSheetLink(value) {
+  const links = String(value || '').match(/https?:\/\/\S+|file:\/\/\S+/g);
+  return links ? links[0] : String(value || '').trim();
+}
+
 function normalizeAlignmentPdfKey(span) {
   if(!span) return '';
   const tokens = String(span).toUpperCase().match(/P-\d+[A-Z]*/g);
@@ -1116,6 +1137,7 @@ function parseMainline(rows) {
     const pcPreShifted = cellVal(c[22]);
     const pcPostShifted = cellVal(c[23]);
     const pcUsesShiftedCols = !pcPreLegacy && !pcPostLegacy && (pcPreShifted || pcPostShifted);
+    const override = MAINLINE_DATE_OVERRIDES[pier] || {};
     result.push({
       id: id++,
       pier, cfg, pileCount, pileDia,
@@ -1130,8 +1152,8 @@ function parseMainline(rows) {
       // Pile Deviate
       pile_dev_date:cellVal(c[16]),pile_dev_out_loc:cellVal(c[17]),pile_dev_rebar:cellVal(c[18]),
       // Survey stages. Some newer rows place Pile Cap in W/X instead of T/U.
-      pc_prepour:pcPreLegacy || pcPreShifted,
-      pc_postpour:pcPostLegacy || pcPostShifted,
+      pc_prepour:pcPreLegacy || pcPreShifted || override.pc_prepour || '',
+      pc_postpour:pcPostLegacy || pcPostShifted || override.pc_postpour || '',
       pc_remark:cellVal(c[21]) || (pcUsesShiftedCols ? cellVal(c[26]) : ''),
       col_1st:pcUsesShiftedCols ? '' : cellVal(c[22]),
       col_1st_post:pcUsesShiftedCols ? '' : cellVal(c[23]),
@@ -1515,8 +1537,9 @@ function renderTable(key) {
     }
     function pdfBtn(date, pdfUrl, title){
       if(!date && !pdfUrl) return '';
-      if(!date && pdfUrl) return `<a href="${pdfUrl}" target="_blank" rel="noopener" title="Open PDF: ${title}" style="font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--green);text-decoration:none;border-bottom:1px dashed var(--green)">📄</a>`;
-      if(pdfUrl) return `<a href="${pdfUrl}" target="_blank" rel="noopener" title="Open PDF: ${title}" style="font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--green);text-decoration:none;border-bottom:1px dashed var(--green)">${date} 📄</a>`;
+      const href = firstSheetLink(pdfUrl);
+      if(!date && pdfUrl) return `<a href="${href}" target="_blank" rel="noopener" title="Open PDF: ${title}" style="font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--green);text-decoration:none;border-bottom:1px dashed var(--green)">📄</a>`;
+      if(pdfUrl) return `<a href="${href}" target="_blank" rel="noopener" title="Open PDF: ${title}" style="font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--green);text-decoration:none;border-bottom:1px dashed var(--green)">${date} 📄</a>`;
       return `<span style="font-family:'DM Mono',monospace;font-size:0.72rem">${date}</span>`;
     }
     function workCellPdf(pre, post, pdf_pre, pdf_post){
@@ -1526,14 +1549,15 @@ function renderTable(key) {
       // Only post date exists
       if(post) return pdfBtn(post,pdf_post,'Post-Pour');
       // Pre date exists, and post PDF link exists but no post date yet — show both rows
-      if(pre&&pdf_post) return `<div style="font-size:0.72rem"><div style="color:var(--text2)">Pre: ${pdfBtn(pre,pdf_pre,'Pre-Pour')}</div><div style="color:var(--gold)">Post: <a href="${pdf_post}" target="_blank" rel="noopener" title="Open PDF: Post-Pour" style="font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--gold);text-decoration:none;border-bottom:1px dashed var(--gold)">📄 PDF</a></div></div>`;
+      if(pre&&pdf_post) return `<div style="font-size:0.72rem"><div style="color:var(--text2)">Pre: ${pdfBtn(pre,pdf_pre,'Pre-Pour')}</div><div style="color:var(--gold)">Post: <a href="${firstSheetLink(pdf_post)}" target="_blank" rel="noopener" title="Open PDF: Post-Pour" style="font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--gold);text-decoration:none;border-bottom:1px dashed var(--gold)">📄 PDF</a></div></div>`;
       // Only pre date (no post yet)
       return `${pdfBtn(pre,pdf_pre,'Pre-Pour')} <span style="font-size:0.65rem;color:var(--gold)">(Pre)</span>`;
     }
     function datePdfCell(date, pdfUrl, title, color='var(--green)'){
       if(!date && !pdfUrl) return '<span class="muted">—</span>';
-      if(!date && pdfUrl) return `<a href="${pdfUrl}" target="_blank" rel="noopener" title="Open PDF: ${title}" style="font-family:'DM Mono',monospace;font-size:0.72rem;color:${color};text-decoration:none;border-bottom:1px dashed ${color}">📄 PDF</a>`;
-      if(pdfUrl) return `<a href="${pdfUrl}" target="_blank" rel="noopener" title="Open PDF: ${title}" style="font-family:'DM Mono',monospace;font-size:0.72rem;color:${color};text-decoration:none;border-bottom:1px dashed ${color}">${date} 📄</a>`;
+      const href = firstSheetLink(pdfUrl);
+      if(!date && pdfUrl) return `<a href="${href}" target="_blank" rel="noopener" title="Open PDF: ${title}" style="font-family:'DM Mono',monospace;font-size:0.72rem;color:${color};text-decoration:none;border-bottom:1px dashed ${color}">📄 PDF</a>`;
+      if(pdfUrl) return `<a href="${href}" target="_blank" rel="noopener" title="Open PDF: ${title}" style="font-family:'DM Mono',monospace;font-size:0.72rem;color:${color};text-decoration:none;border-bottom:1px dashed ${color}">${date} 📄</a>`;
       return `<span class="mono" style="font-size:0.75rem;color:${color}">${date}</span>`;
     }
     function workCell(pre, post){
@@ -1548,9 +1572,9 @@ function renderTable(key) {
       <td style="text-align:center">${d.pileCount||'—'}</td>
       <td style="text-align:center">${d.pileDia?d.pileDia+' mm':'—'}</td>
       <td>${pileBar(d)}</td>
-      <td>${d.footing?(d.pdf_footing?`<a href="${d.pdf_link}" target="_blank" rel="noopener" title="Open PDF scan" style="font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--green);text-decoration:none;border-bottom:1px dashed var(--green)">${d.footing} 📄</a>`:`<span class="mono" style="font-size:0.75rem;color:var(--green)">${d.footing}</span>`):'<span class="muted">—</span>'}</td>
-      <td>${d.blinding?(d.pdf_blinding?`<a href="${d.pdf_blinding}" target="_blank" rel="noopener" title="Open PDF: Blinding Concrete" style="font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--green);text-decoration:none;border-bottom:1px dashed var(--green)">${d.blinding} 📄</a>`:`<span class="mono" style="font-size:0.75rem;color:var(--green)">${d.blinding}</span>`):'<span class="muted">—</span>'}</td>
-      <td>${d.pile_dev_date?(d.pdf_piledev?`<a href="${d.pdf_piledev}" target="_blank" rel="noopener" title="Open PDF: Pile Deviate" style="font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--green);text-decoration:none;border-bottom:1px dashed var(--green)">${d.pile_dev_date} 📄</a>`:`<span class="mono" style="font-size:0.75rem">${d.pile_dev_date}</span>`):'<span class="muted">—</span>'}</td>
+      <td>${datePdfCell(d.footing,d.pdf_footing,'Footing Excavation','var(--green)')}</td>
+      <td>${datePdfCell(d.blinding,d.pdf_blinding,'Blinding Concrete','var(--green)')}</td>
+      <td>${datePdfCell(d.pile_dev_date,d.pdf_piledev,'Pile Deviate','var(--green)')}</td>
       <td>${d.pile_dev_out_loc||'<span class="muted">—</span>'}</td>
       <td>${remarkBadge(d.pile_dev_rebar)}</td>
       <td>${datePdfCell(d.pc_prepour,d.pdf_pc_pre,'Pile Cap Pre-Pour','var(--text2)')}</td>
@@ -1720,16 +1744,16 @@ function buildPendingAlerts() {
 
   // ── Main Line: Pre done, Post pending ──
   const jobs = [
-    { label:'Pile Cap',         pre:'pc_prepour',  post:'pc_postpour'  },
-    { label:'Pier Column 1st',  pre:'col_1st',     post:'col_1st_post' },
-    { label:'Pier Column 2nd',  pre:'col_2nd',     post:'col_2nd_post' },
-    { label:'Pier Head',        pre:'ph_prepour',  post:'ph_postpour'  },
-    { label:'Bearing Plinths',  pre:'br_prepour',  post:'br_postpour'  },
+    { label:'Pile Cap',         pre:'pc_prepour',  post:'pc_postpour',  pdfPre:'pdf_pc_pre',   pdfPost:'pdf_pc_post'   },
+    { label:'Pier Column 1st',  pre:'col_1st',     post:'col_1st_post', pdfPre:'pdf_col1_pre', pdfPost:'pdf_col1_post' },
+    { label:'Pier Column 2nd',  pre:'col_2nd',     post:'col_2nd_post', pdfPre:'pdf_col2_pre', pdfPost:'pdf_col2_post' },
+    { label:'Pier Head',        pre:'ph_prepour',  post:'ph_postpour',  pdfPre:'pdf_ph_pre',   pdfPost:'pdf_ph_post'   },
+    { label:'Bearing Plinths',  pre:'br_prepour',  post:'br_postpour',  pdfPre:'pdf_br_pre',   pdfPost:'pdf_br_post'   },
   ];
   DB.mainline.forEach(d => {
     jobs.forEach(j => {
-      if(d[j.pre] && !d[j.post]) {
-        alerts.mainline.push({ id: d.pier, job: j.label, date: d[j.pre] });
+      if(hasSheetData(d, j.pre, j.pdfPre) && !hasSheetData(d, j.post, j.pdfPost)) {
+        alerts.mainline.push({ id: d.pier, job: j.label, date: sheetDataLabel(d, j.pre, j.pdfPre) });
       }
     });
   });
@@ -2077,18 +2101,18 @@ function updateOverview(){
     if(n>0 && done===n) mlBPComplete++;
     else if(done>0) mlBPPartial++;
 
-    if(d.footing)        mlFooting++;
-    if(d.blinding)       mlBlinding++;
-    if(d.pile_dev_date)  mlPileDev++;
+    if(hasSheetData(d, 'footing', 'pdf_footing'))              mlFooting++;
+    if(hasSheetData(d, 'blinding', 'pdf_blinding'))            mlBlinding++;
+    if(hasSheetData(d, 'pile_dev_date', 'pdf_piledev'))        mlPileDev++;
     const r=(d.pile_dev_rebar||'').toLowerCase();
     if(r.includes('out of tol')||r.includes('out of torerance')) mlPileDevOOT++;
-    if(d.pc_prepour)     mlPCPre++;
-    if(d.pc_postpour)    mlPCPost++;
-    if(d.col_1st)        mlCol1st++;
-    if(d.col_2nd)        mlCol2nd++;
-    if(d.ph_prepour)     mlPH++;
-    if(d.br_prepour)     mlBR++;
-    if(d.br_postpour)    mlCompleted++;
+    if(hasSheetData(d, 'pc_prepour', 'pdf_pc_pre'))            mlPCPre++;
+    if(hasSheetData(d, 'pc_postpour', 'pdf_pc_post'))          mlPCPost++;
+    if(hasSheetData(d, 'col_1st', 'pdf_col1_pre'))             mlCol1st++;
+    if(hasSheetData(d, 'col_2nd', 'pdf_col2_pre'))             mlCol2nd++;
+    if(hasSheetData(d, 'ph_prepour', 'pdf_ph_pre'))            mlPH++;
+    if(hasSheetData(d, 'br_prepour', 'pdf_br_pre'))            mlBR++;
+    if(hasSheetData(d, 'br_postpour', 'pdf_br_post'))          mlCompleted++;
   });
 
   const mlInspPct = mlTotalPiles>0 ? Math.round(mlInspected/mlTotalPiles*100) : 0;

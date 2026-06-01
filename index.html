@@ -1118,7 +1118,28 @@ async function loadFromSheets() {
 // ── PARSE MAIN LINE ──────────────────────────────────────────
 function parseMainline(rows) {
   const result = [];
+  const byPier = new Map();
   let id = 1;
+  const mergeRecord = (target, source) => {
+    for(const [key, value] of Object.entries(source)) {
+      if(key === 'id' || key === 'pier') continue;
+      if(key === 'pileDates') {
+        const merged = target.pileDates || [];
+        (value || []).forEach((date, idx) => {
+          if(date && !merged[idx]) merged[idx] = date;
+        });
+        target.pileDates = merged;
+        continue;
+      }
+      if((value !== '' && value !== undefined && value !== null) &&
+         (target[key] === '' || target[key] === undefined || target[key] === null)) {
+        target[key] = value;
+      }
+    }
+    target.pilesComplete = (target.pileDates || []).filter(Boolean).length;
+    if(!target.pileCount && source.pileCount) target.pileCount = source.pileCount;
+    if(!target.pileDia && source.pileDia) target.pileDia = source.pileDia;
+  };
   for(const row of rows) {
     const c = row.c || [];
     const pier = cellVal(c[0]);
@@ -1138,7 +1159,7 @@ function parseMainline(rows) {
     const pcPostShifted = cellVal(c[23]);
     const pcUsesShiftedCols = !pcPreLegacy && !pcPostLegacy && (pcPreShifted || pcPostShifted);
     const override = MAINLINE_DATE_OVERRIDES[pier] || {};
-    result.push({
+    const record = {
       id: id++,
       pier, cfg, pileCount, pileDia,
       p1:cellVal(c[2]),p2:cellVal(c[3]),p3:cellVal(c[4]),p4:cellVal(c[5]),
@@ -1174,7 +1195,14 @@ function parseMainline(rows) {
       pdf_ph_post:   cellVal(c[43]),
       pdf_br_pre:    cellVal(c[44]),
       pdf_br_post:   cellVal(c[45]),
-    });
+    };
+    const existing = byPier.get(pier);
+    if(existing) {
+      mergeRecord(existing, record);
+    } else {
+      byPier.set(pier, record);
+      result.push(record);
+    }
   }
   console.log('parseMainline:', result.length, 'piers');
   // DEBUG: log P-893 raw data

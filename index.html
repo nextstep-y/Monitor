@@ -821,6 +821,35 @@ function firstSheetLink(value) {
   return links ? links[0] : String(value || '').trim();
 }
 
+function firstUrl(value) {
+  const links = String(value || '').match(/https?:\/\/[^\s<>"']+|file:\/\/[^\s<>"']+/g);
+  return links ? links[0] : '';
+}
+
+function cellLink(cell) {
+  if(!cell) return '';
+  const candidates = [
+    cell.hyperlink,
+    cell.l,
+    cell.url,
+    cell.p && (cell.p.hyperlink || cell.p.link || cell.p.url),
+    cell.effectiveFormat && cell.effectiveFormat.textFormat && cell.effectiveFormat.textFormat.link && cell.effectiveFormat.textFormat.link.uri,
+    cell.userEnteredFormat && cell.userEnteredFormat.textFormat && cell.userEnteredFormat.textFormat.link && cell.userEnteredFormat.textFormat.link.uri,
+  ];
+  if(Array.isArray(cell.textFormatRuns)) {
+    cell.textFormatRuns.forEach(run => candidates.push(run.format && run.format.link && run.format.link.uri));
+  }
+  for(const candidate of candidates) {
+    const url = firstUrl(candidate);
+    if(url) return url;
+  }
+  return firstUrl(cell.v) || firstUrl(cell.f);
+}
+
+function pdfLink(cell) {
+  return cellLink(cell) || firstUrl(cellVal(cell));
+}
+
 function normalizeAlignmentPdfKey(span) {
   if(!span) return '';
   const tokens = String(span).toUpperCase().match(/P-\d+[A-Z]*/g);
@@ -1182,19 +1211,19 @@ function parseMainline(rows) {
       ph_prepour:cellVal(c[27]),ph_postpour:cellVal(c[28]),ph_remark:cellVal(c[29]),
       br_prepour:cellVal(c[30]),br_postpour:cellVal(c[31]),br_remark:cellVal(c[32]),
       // PDF scan links (columns AH+ = index 33+)
-      pdf_footing:   cellVal(c[33]),
-      pdf_blinding:  cellVal(c[34]),
-      pdf_piledev:   cellVal(c[35]),
-      pdf_pc_pre:    cellVal(c[36]),
-      pdf_pc_post:   cellVal(c[37]),
-      pdf_col1_pre:  cellVal(c[38]),
-      pdf_col1_post: cellVal(c[39]),
-      pdf_col2_pre:  cellVal(c[40]),
-      pdf_col2_post: cellVal(c[41]),
-      pdf_ph_pre:    cellVal(c[42]),
-      pdf_ph_post:   cellVal(c[43]),
-      pdf_br_pre:    cellVal(c[44]),
-      pdf_br_post:   cellVal(c[45]),
+      pdf_footing:   cellLink(c[14]) || pdfLink(c[33]),
+      pdf_blinding:  cellLink(c[15]) || pdfLink(c[34]),
+      pdf_piledev:   cellLink(c[16]) || pdfLink(c[35]),
+      pdf_pc_pre:    cellLink(c[19]) || cellLink(c[22]) || pdfLink(c[36]),
+      pdf_pc_post:   cellLink(c[20]) || cellLink(c[23]) || pdfLink(c[37]),
+      pdf_col1_pre:  cellLink(c[22]) || pdfLink(c[38]),
+      pdf_col1_post: cellLink(c[23]) || pdfLink(c[39]),
+      pdf_col2_pre:  cellLink(c[24]) || pdfLink(c[40]),
+      pdf_col2_post: cellLink(c[25]) || pdfLink(c[41]),
+      pdf_ph_pre:    cellLink(c[27]) || pdfLink(c[42]),
+      pdf_ph_post:   cellLink(c[28]) || pdfLink(c[43]),
+      pdf_br_pre:    cellLink(c[30]) || pdfLink(c[44]),
+      pdf_br_post:   cellLink(c[31]) || pdfLink(c[45]),
     };
     const existing = byPier.get(pier);
     if(existing) {
@@ -1247,8 +1276,8 @@ function parsePiles(rows, startRow=0) {
       casing:      cellVal(c[1]),
       deviate:     cellVal(c[2]),
       remark:      cellVal(c[3]),
-      pdf_casing:  cellVal(c[4]),
-      pdf_deviate: cellVal(c[5]),
+      pdf_casing:  cellLink(c[1]) || pdfLink(c[4]),
+      pdf_deviate: cellLink(c[2]) || pdfLink(c[5]),
     });
   }
   return result;
@@ -1276,7 +1305,7 @@ function parseSubstation(rows, ssLabel) {
       out_loc: cellVal(c[3]),
       rebar:   cellVal(c[4]),
       remark:    cellVal(c[2]) || '',
-      pdf_insp:  cellVal(c[5]),
+      pdf_insp:  cellLink(c[1]) || pdfLink(c[5]),
     });
   }
   console.log(`parseSubstation(${ssLabel||'?'}): ${result.length} piles`);
@@ -1291,11 +1320,25 @@ function parseBattery(rows) {
     const c = rows[i].c || [];
     const p1 = cellVal(c[0]);
     if(p1 && p1 !== 'NaN' && !p1.startsWith('BATTERY')) {
-      result.push({ id: id++, point: p1, post: 'BP3', casing: cellVal(c[1]), deviate: cellVal(c[2]), remark: cellVal(c[3])||'' });
+      result.push({
+        id: id++, point: p1, post: 'BP3',
+        casing: cellVal(c[1]),
+        deviate: cellVal(c[2]),
+        remark: cellVal(c[3])||'',
+        pdf_casing: cellLink(c[1]),
+        pdf_deviate: cellLink(c[2]),
+      });
     }
     const p2 = cellVal(c[7]);
     if(p2 && p2 !== 'NaN' && !p2.startsWith('BATTERY')) {
-      result.push({ id: id++, point: p2, post: 'BP4', casing: cellVal(c[8]), deviate: cellVal(c[9]), remark: cellVal(c[10])||'' });
+      result.push({
+        id: id++, point: p2, post: 'BP4',
+        casing: cellVal(c[8]),
+        deviate: cellVal(c[9]),
+        remark: cellVal(c[10])||'',
+        pdf_casing: cellLink(c[8]),
+        pdf_deviate: cellLink(c[9]),
+      });
     }
   }
   return result;
@@ -1334,12 +1377,12 @@ function parseAlignment(rows) {
       align_status:    cellVal(c[8]),   // Col I : Final Alignment Status
       upstand_status:  cellVal(c[9]),   // Col J : UPSTAND Status
       ocs_status:      cellVal(c[10]),  // Col K : OCS Status
-      pdf_elasto:      cellVal(c[11]) || lookupAlignmentPdf(span, 'elasto'),       // Col L or local PDF index
-      pdf_final_align: cellVal(c[12]) || lookupAlignmentPdf(span, 'final_align'),  // Col M or local PDF index
-      pdf_pre_upstand: cellVal(c[13]) || lookupAlignmentPdf(span, 'pre_upstand'),  // Col N or local PDF index
-      pdf_pre_ocs:     cellVal(c[14]) || lookupAlignmentPdf(span, 'pre_ocs'),
-      pdf_post_upstand:cellVal(c[15]) || lookupAlignmentPdf(span, 'post_upstand'),
-      pdf_post_ocs:    cellVal(c[16]) || lookupAlignmentPdf(span, 'post_ocs'),
+      pdf_elasto:      cellLink(c[1]) || pdfLink(c[11]) || lookupAlignmentPdf(span, 'elasto'),       // Col L or local PDF index
+      pdf_final_align: cellLink(c[2]) || pdfLink(c[12]) || lookupAlignmentPdf(span, 'final_align'),  // Col M or local PDF index
+      pdf_pre_upstand: cellLink(c[3]) || pdfLink(c[13]) || lookupAlignmentPdf(span, 'pre_upstand'),  // Col N or local PDF index
+      pdf_pre_ocs:     cellLink(c[4]) || pdfLink(c[14]) || lookupAlignmentPdf(span, 'pre_ocs'),
+      pdf_post_upstand:cellLink(c[5]) || pdfLink(c[15]) || lookupAlignmentPdf(span, 'post_upstand'),
+      pdf_post_ocs:    cellLink(c[6]) || pdfLink(c[16]) || lookupAlignmentPdf(span, 'post_ocs'),
     });
   }
   console.log(`parseAlignment: ${rows.length} raw rows → ${result.length} spans`);
@@ -1361,6 +1404,13 @@ function statusBadge(remark) {
   return `<span class="badge badge-na">${remark}</span>`;
 }
 function fmtDate(d){return d?`<span class="mono">${d}</span>`:'<span class="muted">—</span>';}
+function linkedDate(date, pdfUrl, title='Open PDF', color='var(--green)', emptyText='—') {
+  if(!date && !pdfUrl) return `<span class="muted">${emptyText}</span>`;
+  const href = firstSheetLink(pdfUrl);
+  if(!date && href) return `<a href="${href}" target="_blank" rel="noopener" title="${title}" style="font-family:'DM Mono',monospace;font-size:0.75rem;color:${color};text-decoration:none;border-bottom:1px dashed ${color}">📄 PDF</a>`;
+  if(href) return `<a href="${href}" target="_blank" rel="noopener" title="${title}" style="font-family:'DM Mono',monospace;font-size:0.75rem;color:${color};text-decoration:none;border-bottom:1px dashed ${color}">${date} 📄</a>`;
+  return `<span class="mono" style="font-size:0.75rem;color:${color}">${date}</span>`;
+}
 
 // Inline editable cell
 function editCell(key,id,field,val,type='text'){
@@ -1535,8 +1585,8 @@ function renderTable(key) {
   if(key==='angeles'||key==='clark'){
     tbody.innerHTML=paged.map(d=>`<tr>
       <td class="mono editable"  style="font-weight:600">${d.p||'—'}</td>
-      <td style="cursor:default">${d.casing?(d.pdf_casing?`<a href="${d.pdf_casing}" target="_blank" rel="noopener" title="Open PDF: Casing" style="font-family:'DM Mono',monospace;color:var(--green);text-decoration:none;border-bottom:1px dashed var(--green)">${d.casing} 📄</a>`:fmtDate(d.casing)):'<span class="muted">—</span>'}</td>
-      <td style="cursor:default">${d.deviate?(d.pdf_deviate?`<a href="${d.pdf_deviate}" target="_blank" rel="noopener" title="Open PDF: Pile Deviate" style="font-family:'DM Mono',monospace;color:var(--green);text-decoration:none;border-bottom:1px dashed var(--green)">${d.deviate} 📄</a>`:fmtDate(d.deviate)):'<span class="muted">Not surveyed</span>'}</td>
+      <td style="cursor:default">${linkedDate(d.casing,d.pdf_casing,'Open PDF: Casing','var(--green)')}</td>
+      <td style="cursor:default">${linkedDate(d.deviate,d.pdf_deviate,'Open PDF: Pile Deviate','var(--green)','Not surveyed')}</td>
       <td>${statusBadge(d.remark)}</td>
       <td\\'")}','select')">${d.remark||'<span class="muted">—</span>'}</td>
       
@@ -1582,11 +1632,7 @@ function renderTable(key) {
       return `${pdfBtn(pre,pdf_pre,'Pre-Pour')} <span style="font-size:0.65rem;color:var(--gold)">(Pre)</span>`;
     }
     function datePdfCell(date, pdfUrl, title, color='var(--green)'){
-      if(!date && !pdfUrl) return '<span class="muted">—</span>';
-      const href = firstSheetLink(pdfUrl);
-      if(!date && pdfUrl) return `<a href="${href}" target="_blank" rel="noopener" title="Open PDF: ${title}" style="font-family:'DM Mono',monospace;font-size:0.72rem;color:${color};text-decoration:none;border-bottom:1px dashed ${color}">📄 PDF</a>`;
-      if(pdfUrl) return `<a href="${href}" target="_blank" rel="noopener" title="Open PDF: ${title}" style="font-family:'DM Mono',monospace;font-size:0.72rem;color:${color};text-decoration:none;border-bottom:1px dashed ${color}">${date} 📄</a>`;
-      return `<span class="mono" style="font-size:0.75rem;color:${color}">${date}</span>`;
+      return linkedDate(date, pdfUrl, `Open PDF: ${title}`, color);
     }
     function workCell(pre, post){
       if(!pre&&!post) return '<span class="muted">—</span>';
@@ -1623,7 +1669,7 @@ function renderTable(key) {
   } else if(key==='sub'){
     tbody.innerHTML=paged.map(d=>`<tr>
       <td class="mono" style="font-weight:600">${d.p||'—'}</td>
-      <td>${d.date?`<span class="mono" style="font-size:0.75rem">${d.date}</span>`:'<span class="muted">—</span>'}</td>
+      <td>${linkedDate(d.date,d.pdf_insp,'Open PDF: Inspection','var(--green)')}</td>
       <td>${d.deviate?`<span class="mono" style="font-size:0.75rem">${d.deviate}</span>`:'<span class="muted">—</span>'}</td>
       <td style="font-size:0.75rem;color:var(--text2)">${d.out_loc||'<span class="muted">—</span>'}</td>
       <td>${statusBadge(d.rebar||d.remark)}</td>
@@ -1632,8 +1678,8 @@ function renderTable(key) {
     tbody.innerHTML=paged.map(d=>`<tr>
       <td class="mono editable" >${d.point||'—'}</td>
       <td style="cursor:default">${d.post||'<span class="muted">—</span>'}</td>
-      <td style="cursor:default">${d.casing?(d.pdf_insp?`<a href="${d.pdf_insp}" target="_blank" rel="noopener" title="Open PDF: Inspection" style="font-family:'DM Mono',monospace;color:var(--green);text-decoration:none;border-bottom:1px dashed var(--green)">${d.casing} 📄</a>`:fmtDate(d.casing)):'<span class="muted">—</span>'}</td>
-      <td style="cursor:default">${fmtDate(d.deviate)}</td>
+      <td style="cursor:default">${linkedDate(d.casing,d.pdf_casing,'Open PDF: Casing','var(--green)')}</td>
+      <td style="cursor:default">${linkedDate(d.deviate,d.pdf_deviate,'Open PDF: Pile Deviate','var(--green)')}</td>
       <td\\'")}'")">${d.remark||'<span class="muted">—</span>'}</td>
       
     </tr>`).join('');
@@ -1647,15 +1693,14 @@ function renderTable(key) {
         if(remark||status) return '<span class="badge badge-na" style="font-size:0.68rem">'+(remark||status).slice(0,18)+'</span>';
         return '<span class="muted">—</span>';
       }
-      function dateCell(v){ return v ? `<span class="mono" style="font-size:0.75rem">${v}</span>` : '<span class="muted">—</span>'; }
       return `<tr>
         <td class="mono" style="font-weight:600;white-space:nowrap">${d.pile||'—'}</td>
-        <td>${d.elasto?(d.pdf_elasto?`<a href="${d.pdf_elasto}" target="_blank" rel="noopener" title="Open PDF: Elastomeric" style="font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--green);text-decoration:none;border-bottom:1px dashed var(--green)">${d.elasto} 📄</a>`:dateCell(d.elasto)):'<span class="muted">—</span>'}</td>
-        <td>${d.final_align?(d.pdf_final_align?`<a href="${d.pdf_final_align}" target="_blank" rel="noopener" title="Open PDF: Final Alignment" style="font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--green);text-decoration:none;border-bottom:1px dashed var(--green)">${d.final_align} 📄</a>`:dateCell(d.final_align)):'<span class="muted">—</span>'}</td>
-        <td>${d.pre_upstand?(d.pdf_pre_upstand?`<a href="${d.pdf_pre_upstand}" target="_blank" rel="noopener" title="Open PDF: Pre-Pour UPSTAND" style="font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--green);text-decoration:none;border-bottom:1px dashed var(--green)">${d.pre_upstand} 📄</a>`:dateCell(d.pre_upstand)):'<span class="muted">—</span>'}</td>
-        <td>${d.pre_ocs?(d.pdf_pre_ocs?`<a href="${d.pdf_pre_ocs}" target="_blank" rel="noopener" title="Open PDF: Pre-Pour OCS" style="font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--green);text-decoration:none;border-bottom:1px dashed var(--green)">${d.pre_ocs} 📄</a>`:dateCell(d.pre_ocs)):'<span class="muted">—</span>'}</td>
-        <td>${d.post_upstand?(d.pdf_post_upstand?`<a href="${d.pdf_post_upstand}" target="_blank" rel="noopener" title="Open PDF: Post-Pour UPSTAND" style="font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--green);text-decoration:none;border-bottom:1px dashed var(--green)">${d.post_upstand} 📄</a>`:dateCell(d.post_upstand)):'<span class="muted">—</span>'}</td>
-        <td>${d.post_ocs?(d.pdf_post_ocs?`<a href="${d.pdf_post_ocs}" target="_blank" rel="noopener" title="Open PDF: Post-Pour OCS" style="font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--green);text-decoration:none;border-bottom:1px dashed var(--green)">${d.post_ocs} 📄</a>`:dateCell(d.post_ocs)):'<span class="muted">—</span>'}</td>
+        <td>${linkedDate(d.elasto,d.pdf_elasto,'Open PDF: Elastomeric','var(--green)')}</td>
+        <td>${linkedDate(d.final_align,d.pdf_final_align,'Open PDF: Final Alignment','var(--green)')}</td>
+        <td>${linkedDate(d.pre_upstand,d.pdf_pre_upstand,'Open PDF: Pre-Pour UPSTAND','var(--green)')}</td>
+        <td>${linkedDate(d.pre_ocs,d.pdf_pre_ocs,'Open PDF: Pre-Pour OCS','var(--green)')}</td>
+        <td>${linkedDate(d.post_upstand,d.pdf_post_upstand,'Open PDF: Post-Pour UPSTAND','var(--green)')}</td>
+        <td>${linkedDate(d.post_ocs,d.pdf_post_ocs,'Open PDF: Post-Pour OCS','var(--green)')}</td>
         <td>${statusBadge(d.elasto_remark, d.elasto_status)}</td>
         <td>${statusBadge('', d.align_status)}</td>
         <td>${statusBadge('', d.upstand_status)}</td>

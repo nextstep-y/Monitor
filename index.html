@@ -866,18 +866,37 @@ function reverseAlignmentPdfKey(key) {
   return m ? `${m[2]}-${m[1]}` : '';
 }
 
+function alignmentPdfTokenOptions(token) {
+  const raw = String(token || '');
+  const noMl = raw.replace(/ML\b/g, '');
+  const side = noMl.replace(/L\b/g, 'SB').replace(/R\b/g, 'NB');
+  const base = noMl.replace(/(SB|NB|L|R)\b/g, '');
+  return [...new Set([raw, noMl, side, base].filter(Boolean))];
+}
+
+function alignmentPdfKeyVariants(key) {
+  const m = String(key || '').match(/^(P-\d+[A-Z]*)-(P-\d+[A-Z]*)$/);
+  if(!m) return key ? [key] : [];
+  const left = alignmentPdfTokenOptions(m[1]);
+  const right = alignmentPdfTokenOptions(m[2]);
+  const variants = [];
+  left.forEach(a => right.forEach(b => variants.push(`${a}-${b}`)));
+  return [...new Set(variants)];
+}
+
 function lookupAlignmentPdf(span, type) {
-  const index = (typeof ALIGNMENT_PDF_INDEX !== 'undefined') ? ALIGNMENT_PDF_INDEX : {};
+  const index =
+    (typeof window !== 'undefined' && window.ALIGNMENT_PDF_INDEX) ||
+    ((typeof ALIGNMENT_PDF_INDEX !== 'undefined') ? ALIGNMENT_PDF_INDEX : {});
   const map = index[type] || {};
   const key = normalizeAlignmentPdfKey(span);
   if(!key) return '';
-  const baseKey = stripMainLinePdfSuffix(key);
-  const candidates = [
-    key,
-    baseKey,
-    reverseAlignmentPdfKey(key),
-    reverseAlignmentPdfKey(baseKey)
-  ].filter(Boolean);
+  const candidates = [...new Set([
+    ...alignmentPdfKeyVariants(key),
+    ...alignmentPdfKeyVariants(stripMainLinePdfSuffix(key)),
+    ...alignmentPdfKeyVariants(reverseAlignmentPdfKey(key)),
+    ...alignmentPdfKeyVariants(reverseAlignmentPdfKey(stripMainLinePdfSuffix(key)))
+  ].filter(Boolean))];
   for(const candidate of candidates) {
     if(map[candidate]) return map[candidate];
   }
@@ -1092,7 +1111,7 @@ async function loadFromSheets() {
     const batRows = await fetchTabSafe(TAB_NAMES.battery, 'A:M');
 
     update('Loading Final Alignment...');
-    const alRows  = await fetchTabSafe(TAB_NAMES.align, 'A:N');
+    const alRows  = await fetchTabSafe(TAB_NAMES.align, 'A:Q');
 
     const ml  = parseMainline(mlRows);
     const ang = parsePiles(angRows, 0);
@@ -1348,7 +1367,7 @@ function parseBattery(rows) {
 function parseAlignment(rows) {
   // Sheet columns:
   // A Span, B Elastomeric, C Final Alignment, D/E Check Form Work,
-  // F/G As-Built, H-K status columns, L-N PDF/link columns.
+  // F/G As-Built, H-K status columns, L-Q PDF/link columns.
   const result = [];
   let id = 1;
   for(let i = 0; i < rows.length; i++) {

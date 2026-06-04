@@ -141,6 +141,20 @@ body.edit-mode .edit-hint{display:flex;}
 .btn-secondary:hover{border-color:var(--accent);color:var(--text);}
 .btn-danger{background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:8px;padding:8px 16px;color:var(--red);font-family:'DM Sans',sans-serif;font-size:0.84rem;cursor:pointer;transition:all 0.2s;}
 .btn-danger:hover{background:rgba(239,68,68,0.2);}
+.pdf-modal{background:rgba(8,11,19,0.96);border:1px solid var(--border);border-radius:18px;width:min(96vw,1280px);height:min(92vh,960px);display:flex;flex-direction:column;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,0.45);}
+.pdf-modal-header{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:0.9rem 1rem;border-bottom:1px solid var(--border);background:rgba(22,29,46,0.92);}
+.pdf-modal-title{font-family:'Fraunces',serif;font-size:1rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pdf-modal-actions{display:flex;align-items:center;gap:0.55rem;flex-wrap:wrap;justify-content:flex-end;}
+.pdf-action-btn{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:6px 10px;color:var(--text);font-size:0.76rem;cursor:pointer;font-family:'DM Sans',sans-serif;text-decoration:none;display:inline-flex;align-items:center;gap:6px;}
+.pdf-action-btn:hover{border-color:var(--accent);color:var(--accent);}
+.pdf-action-btn.primary{background:rgba(59,130,246,0.14);border-color:rgba(59,130,246,0.28);color:#cfe2ff;}
+.pdf-modal-body{flex:1;display:flex;align-items:center;justify-content:center;overflow:auto;padding:1rem;background:radial-gradient(circle at top right,rgba(59,130,246,0.08),transparent 30%),linear-gradient(180deg,#0b0f1a 0%,#0f1728 100%);}
+.pdf-frame-wrap{display:flex;align-items:center;justify-content:center;min-width:100%;min-height:100%;padding:2rem;transition:transform 0.25s ease;}
+.pdf-frame-wrap.rot-90{transform:rotate(90deg);}
+.pdf-frame-wrap.rot-180{transform:rotate(180deg);}
+.pdf-frame-wrap.rot-270{transform:rotate(270deg);}
+.pdf-frame{width:min(92vw,980px);height:min(78vh,760px);border:none;border-radius:12px;background:white;box-shadow:0 18px 40px rgba(0,0,0,0.35);}
+.pdf-helper{font-size:0.72rem;color:var(--text3);font-family:'DM Mono',monospace;}
 
 /* TOAST */
 .toast{position:fixed;bottom:1.5rem;right:1.5rem;background:#1e293b;border:1px solid var(--border);border-radius:10px;padding:10px 16px;font-size:0.82rem;color:var(--text);box-shadow:0 8px 24px rgba(0,0,0,0.4);z-index:300;animation:slideIn 0.3s ease;display:flex;align-items:center;gap:8px;}
@@ -580,6 +594,28 @@ body.edit-mode .edit-hint{display:flex;}
     <div class="modal-actions">
       <button class="btn-secondary" onclick="closeModal()">Cancel</button>
       <button class="btn-primary" onclick="saveModal()">💾 Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="pdf-modal" onclick="if(event.target===this) closePdfViewer()">
+  <div class="pdf-modal">
+    <div class="pdf-modal-header">
+      <div style="min-width:0;">
+        <div class="pdf-modal-title" id="pdf-modal-title">PDF Viewer</div>
+        <div class="pdf-helper" id="pdf-modal-helper">Rotate scanned files here if they open upside down.</div>
+      </div>
+      <div class="pdf-modal-actions">
+        <button class="pdf-action-btn" type="button" onclick="rotatePdfViewer(-90)">↺ Rotate</button>
+        <button class="pdf-action-btn" type="button" onclick="rotatePdfViewer(90)">↻ Rotate</button>
+        <a class="pdf-action-btn primary" id="pdf-modal-open" href="#" target="_blank" rel="noopener">↗ Open Original</a>
+        <button class="pdf-action-btn" type="button" onclick="closePdfViewer()">✕ Close</button>
+      </div>
+    </div>
+    <div class="pdf-modal-body">
+      <div class="pdf-frame-wrap" id="pdf-frame-wrap">
+        <iframe class="pdf-frame" id="pdf-frame" title="PDF Viewer"></iframe>
+      </div>
     </div>
   </div>
 </div>
@@ -1188,6 +1224,72 @@ function pdfLink(cell) {
   return cellLink(cell) || firstUrl(cellVal(cell));
 }
 
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function buildPdfAnchor(href, label, title, color) {
+  const safeHref = escapeHtml(href);
+  const safeLabel = escapeHtml(label);
+  const safeTitle = escapeHtml(title);
+  return `<a href="${safeHref}" class="js-pdf-link" data-pdf-url="${safeHref}" data-pdf-title="${safeTitle}" target="_blank" rel="noopener" title="${safeTitle}" style="font-family:'DM Mono',monospace;font-size:0.75rem;color:${color};text-decoration:none;border-bottom:1px dashed ${color}">${safeLabel}</a>`;
+}
+
+function drivePreviewUrl(url) {
+  const match = String(url || '').match(/drive\.google\.com\/file\/d\/([^/]+)/);
+  return match ? `https://drive.google.com/file/d/${match[1]}/preview` : url;
+}
+
+let pdfViewerRotation = 0;
+
+function updatePdfViewerRotation() {
+  const wrap = document.getElementById('pdf-frame-wrap');
+  if(!wrap) return;
+  wrap.classList.remove('rot-90','rot-180','rot-270');
+  if(pdfViewerRotation === 90) wrap.classList.add('rot-90');
+  else if(pdfViewerRotation === 180) wrap.classList.add('rot-180');
+  else if(pdfViewerRotation === 270) wrap.classList.add('rot-270');
+}
+
+function openPdfViewer(url, title='Open PDF') {
+  const href = firstSheetLink(url);
+  if(!href) return false;
+  pdfViewerRotation = 0;
+  updatePdfViewerRotation();
+  const modal = document.getElementById('pdf-modal');
+  const frame = document.getElementById('pdf-frame');
+  const open = document.getElementById('pdf-modal-open');
+  const titleEl = document.getElementById('pdf-modal-title');
+  if(titleEl) titleEl.textContent = title;
+  if(open) open.href = href;
+  if(frame) frame.src = drivePreviewUrl(href);
+  if(modal) modal.classList.add('open');
+  return true;
+}
+
+function closePdfViewer() {
+  const modal = document.getElementById('pdf-modal');
+  const frame = document.getElementById('pdf-frame');
+  if(modal) modal.classList.remove('open');
+  if(frame) frame.src = 'about:blank';
+}
+
+function rotatePdfViewer(delta) {
+  pdfViewerRotation = (pdfViewerRotation + delta + 360) % 360;
+  updatePdfViewerRotation();
+}
+
+document.addEventListener('click', (event) => {
+  const link = event.target.closest('.js-pdf-link');
+  if(!link) return;
+  event.preventDefault();
+  openPdfViewer(link.dataset.pdfUrl || link.href, link.dataset.pdfTitle || link.title || 'Open PDF');
+});
+
 function normalizeAlignmentPdfKey(span) {
   if(!span) return '';
   const tokens = String(span).toUpperCase().match(/P-\d+[A-Z]*/g);
@@ -1764,8 +1866,8 @@ function fmtDate(d){return d?`<span class="mono">${d}</span>`:'<span class="mute
 function linkedDate(date, pdfUrl, title='Open PDF', color='var(--green)', emptyText='—') {
   if(!date && !pdfUrl) return `<span class="muted">${emptyText}</span>`;
   const href = firstSheetLink(pdfUrl);
-  if(!date && href) return `<a href="${href}" target="_blank" rel="noopener" title="${title}" style="font-family:'DM Mono',monospace;font-size:0.75rem;color:${color};text-decoration:none;border-bottom:1px dashed ${color}">📄 PDF</a>`;
-  if(href) return `<a href="${href}" target="_blank" rel="noopener" title="${title}" style="font-family:'DM Mono',monospace;font-size:0.75rem;color:${color};text-decoration:none;border-bottom:1px dashed ${color}">${date} 📄</a>`;
+  if(!date && href) return buildPdfAnchor(href, '📄 PDF', title, color);
+  if(href) return buildPdfAnchor(href, `${date} 📄`, title, color);
   return `<span class="mono" style="font-size:0.75rem;color:${color}">${date}</span>`;
 }
 
@@ -1973,8 +2075,8 @@ function renderTable(key) {
     function pdfBtn(date, pdfUrl, title){
       if(!date && !pdfUrl) return '';
       const href = firstSheetLink(pdfUrl);
-      if(!date && pdfUrl) return `<a href="${href}" target="_blank" rel="noopener" title="Open PDF: ${title}" style="font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--green);text-decoration:none;border-bottom:1px dashed var(--green)">📄</a>`;
-      if(pdfUrl) return `<a href="${href}" target="_blank" rel="noopener" title="Open PDF: ${title}" style="font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--green);text-decoration:none;border-bottom:1px dashed var(--green)">${date} 📄</a>`;
+      if(!date && pdfUrl) return buildPdfAnchor(href, '📄', `Open PDF: ${title}`, 'var(--green)');
+      if(pdfUrl) return buildPdfAnchor(href, `${date} 📄`, `Open PDF: ${title}`, 'var(--green)');
       return `<span style="font-family:'DM Mono',monospace;font-size:0.72rem">${date}</span>`;
     }
     function workCellPdf(pre, post, pdf_pre, pdf_post){
@@ -1984,7 +2086,7 @@ function renderTable(key) {
       // Only post date exists
       if(post) return pdfBtn(post,pdf_post,'Post-Pour');
       // Pre date exists, and post PDF link exists but no post date yet — show both rows
-      if(pre&&pdf_post) return `<div style="font-size:0.72rem"><div style="color:var(--text2)">Pre: ${pdfBtn(pre,pdf_pre,'Pre-Pour')}</div><div style="color:var(--gold)">Post: <a href="${firstSheetLink(pdf_post)}" target="_blank" rel="noopener" title="Open PDF: Post-Pour" style="font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--gold);text-decoration:none;border-bottom:1px dashed var(--gold)">📄 PDF</a></div></div>`;
+      if(pre&&pdf_post) return `<div style="font-size:0.72rem"><div style="color:var(--text2)">Pre: ${pdfBtn(pre,pdf_pre,'Pre-Pour')}</div><div style="color:var(--gold)">Post: ${buildPdfAnchor(firstSheetLink(pdf_post), '📄 PDF', 'Open PDF: Post-Pour', 'var(--gold)')}</div></div>`;
       // Only pre date (no post yet)
       return `${pdfBtn(pre,pdf_pre,'Pre-Pour')} <span style="font-size:0.65rem;color:var(--gold)">(Pre)</span>`;
     }

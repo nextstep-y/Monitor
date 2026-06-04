@@ -232,6 +232,7 @@ body.edit-mode .edit-hint{display:flex;}
       <div id="status-dot" style="width:6px;height:6px;border-radius:50%;background:var(--text3);"></div>
       <span id="status-label">Loading...</span>
     </div>
+    <div id="build-id" style="font-size:0.68rem;font-family:'DM Mono',monospace;color:var(--text3);white-space:nowrap;">Build pending</div>
     <button id="refresh-btn" onclick="loadFromSheets()" title="Reload data from Google Sheets"
       style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.25);border-radius:8px;padding:5px 12px;color:var(--green);font-size:0.78rem;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:5px;">
       🔄 Refresh
@@ -924,6 +925,7 @@ if (typeof window !== 'undefined') {
 // ============================================================
 // DEFAULT DATA
 // ============================================================
+const BUILD_ID = '2026-06-04 10:20 inline-alignment-index';
 const DEFAULT = {
   angeles: [
     {id:1,p:'BP1',casing:'2021-04-12',deviate:'2025-01-27',remark:'out of tolerance'},
@@ -2713,6 +2715,8 @@ function enablePageWheelInsideWideTables() {
 }
 
 window.addEventListener('DOMContentLoaded',async()=>{
+  const buildEl = document.getElementById('build-id');
+  if (buildEl) buildEl.textContent = `Build ${BUILD_ID}`;
   await loadFromSheets();
   // Init substation view with SS18 by default
   selectSubstation('ss18');

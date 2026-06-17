@@ -1706,6 +1706,10 @@ const TAB_GIDS = {
   ss19:     '701289398',    // Substation 19
   ss20:     '564054978',    // Substation 20
   ss21:     '2069252308',   // Substation 21
+  battery:  '513271788',    // Battery Post
+  angeles:  '209101477',    // Angeles Station Piles
+  clark:    '1366222553',   // Clark Station Piles
+  align:    '1345613060',   // Final Alignment
 };
 
 // Tab names in Google Sheets (must match exactly)
@@ -1987,6 +1991,150 @@ function parseGviz(raw) {
   return normalizeGvizData(JSON.parse(json));
 }
 
+const csvExportCache = new Map();
+
+function parseCsv(text) {
+  const rows = [];
+  let row = [];
+  let value = '';
+  let inQuotes = false;
+  for(let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if(inQuotes) {
+      if(ch === '"') {
+        if(text[i + 1] === '"') {
+          value += '"';
+          i++;
+        } else {
+          inQuotes = false;
+        }
+      } else {
+        value += ch;
+      }
+      continue;
+    }
+    if(ch === '"') {
+      inQuotes = true;
+    } else if(ch === ',') {
+      row.push(value);
+      value = '';
+    } else if(ch === '\n') {
+      row.push(value);
+      rows.push(row);
+      row = [];
+      value = '';
+    } else if(ch !== '\r') {
+      value += ch;
+    }
+  }
+  if(value || row.length) {
+    row.push(value);
+    rows.push(row);
+  }
+  return rows;
+}
+
+function columnToIndex(column) {
+  let index = 0;
+  String(column || '').toUpperCase().replace(/[^A-Z]/g, '').split('').forEach(ch => {
+    index = index * 26 + (ch.charCodeAt(0) - 64);
+  });
+  return Math.max(0, index - 1);
+}
+
+function parseA1Range(range) {
+  const m = String(range || '').match(/^([A-Z]+)(\d*)?(?::([A-Z]+)(\d*)?)?$/i);
+  if(!m) return { startCol: 0, endCol: Infinity, startRow: null, endRow: null };
+  return {
+    startCol: columnToIndex(m[1]),
+    endCol: m[3] ? columnToIndex(m[3]) : columnToIndex(m[1]),
+    startRow: m[2] ? Number(m[2]) - 1 : null,
+    endRow: m[4] ? Number(m[4]) - 1 : null,
+  };
+}
+
+function cellHasDisplayValue(cell) {
+  if(!cell) return false;
+  return cell.v !== null && cell.v !== undefined && String(cell.v).trim() !== '' ||
+         cell.f !== null && cell.f !== undefined && String(cell.f).trim() !== '';
+}
+
+function rowMatchScore(gvizRow, csvRow) {
+  const cells = gvizRow && gvizRow.c ? gvizRow.c : [];
+  let score = 0;
+  const limit = Math.min(cells.length, csvRow ? csvRow.length : 0, 8);
+  for(let i = 0; i < limit; i++) {
+    const g = cellVal(cells[i]);
+    const c = String(csvRow[i] || '').trim();
+    if(g && c && g === c) score += 2;
+    else if(g || c) score -= 1;
+  }
+  return score;
+}
+
+function bestCsvOffset(gvizRows, csvRows) {
+  let best = 0;
+  let bestScore = -Infinity;
+  const maxOffset = Math.min(30, Math.max(0, csvRows.length - 1));
+  for(let offset = 0; offset <= maxOffset; offset++) {
+    let score = 0;
+    const limit = Math.min(80, gvizRows.length, csvRows.length - offset);
+    for(let i = 0; i < limit; i++) score += rowMatchScore(gvizRows[i], csvRows[i + offset]);
+    if(score > bestScore) {
+      bestScore = score;
+      best = offset;
+    }
+  }
+  return best;
+}
+
+async function fetchCsvExportRows(gid) {
+  if(!gid) return [];
+  if(csvExportCache.has(gid)) return csvExportCache.get(gid);
+  const promise = fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${gid}&_=${Date.now()}`)
+    .then(res => {
+      if(!res.ok) throw new Error(`CSV export failed: ${res.status}`);
+      return res.text();
+    })
+    .then(parseCsv)
+    .catch(err => {
+      console.warn('CSV export overlay failed:', err.message);
+      return [];
+    });
+  csvExportCache.set(gid, promise);
+  return promise;
+}
+
+async function overlayCsvDisplayValues(rows, gid, range) {
+  if(!rows.length || !gid) return rows;
+  const csvRows = await fetchCsvExportRows(gid);
+  if(!csvRows.length) return rows;
+  const parsedRange = parseA1Range(range);
+  const startCol = parsedRange.startCol || 0;
+  const endCol = Number.isFinite(parsedRange.endCol) ? parsedRange.endCol : Math.max(...csvRows.map(r => r.length), 0) - 1;
+  let slicedCsv = csvRows.map(row => row.slice(startCol, endCol + 1));
+  if(parsedRange.startRow !== null) {
+    const endRow = parsedRange.endRow !== null ? parsedRange.endRow : parsedRange.startRow;
+    slicedCsv = csvRows.slice(parsedRange.startRow, endRow + 1).map(row => row.slice(startCol, endCol + 1));
+  }
+  const offset = parsedRange.startRow !== null ? 0 : bestCsvOffset(rows, slicedCsv);
+  let patched = 0;
+  rows.forEach((row, rowIndex) => {
+    const csvRow = slicedCsv[rowIndex + offset];
+    if(!csvRow) return;
+    row.c = row.c || [];
+    csvRow.forEach((csvValue, colIndex) => {
+      const value = String(csvValue || '').trim();
+      if(!value) return;
+      if(cellHasDisplayValue(row.c[colIndex])) return;
+      row.c[colIndex] = { v: value };
+      patched++;
+    });
+  });
+  if(patched) console.log(`CSV overlay patched ${patched} cells for gid ${gid}`);
+  return rows;
+}
+
 function fetchGvizJsonp(url, timeoutMs=15000) {
   return new Promise((resolve, reject) => {
     const cb = '__gviz_cb_' + Date.now() + '_' + Math.random().toString(36).slice(2);
@@ -2120,6 +2268,7 @@ async function fetchTabSafe(tabName, range, timeoutMs=15000, directGid) {
     const data = await fetchGvizJsonp(url, timeoutMs);
     if(data.status === 'error' || data.errors) return [];
     const rows = data.table ? data.table.rows : [];
+    await overlayCsvDisplayValues(rows, gid, range);
     console.log(`fetchTab("${tabName}"): ${rows.length} rows`);
     return rows;
   } catch(e) {
@@ -2130,6 +2279,7 @@ async function fetchTabSafe(tabName, range, timeoutMs=15000, directGid) {
 
 async function loadFromSheets() {
   setStatus('loading', 'Loading from Google Sheets...');
+  csvExportCache.clear();
   const btn = document.getElementById('refresh-btn');
   if(btn) btn.style.opacity='0.5';
 

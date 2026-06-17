@@ -1553,6 +1553,7 @@ if (typeof window !== 'undefined') {
   window.MAINLINE_PDF_INDEX = MAINLINE_PDF_INDEX;
 }
 </script>
+<script src="./bored-pile-pdf-index.js"></script>
 <script>
 // ============================================================
 // DEFAULT DATA
@@ -1954,6 +1955,18 @@ function lookupMainlinePdf(pier, type) {
   const map = index[type] || {};
   const key = normalizeMainlinePdfKey(pier);
   return key ? (map[key] || '') : '';
+}
+
+function lookupMainlinePilePdf(pier, pileNo) {
+  const index =
+    (typeof window !== 'undefined' && window.MAINLINE_BORED_PILE_PDF_INDEX) ||
+    (((typeof MAINLINE_PDF_INDEX !== 'undefined') ? MAINLINE_PDF_INDEX : {}).bored_pile || {});
+  const key = normalizeMainlinePdfKey(pier);
+  const files = key ? (index[key] || {}) : {};
+  const direct = files[String(pileNo)];
+  if(direct) return direct;
+  const suffixMatch = Object.keys(files).find(k => k.toLowerCase() === `${pileNo}a`);
+  return suffixMatch ? files[suffixMatch] : '';
 }
 
 function setStatus(state, msg) {
@@ -2378,6 +2391,14 @@ function parseMainline(rows) {
         target.pileDates = merged;
         continue;
       }
+      if(key === 'pilePdfLinks') {
+        const merged = target.pilePdfLinks || [];
+        (value || []).forEach((url, idx) => {
+          if(url && !merged[idx]) merged[idx] = url;
+        });
+        target.pilePdfLinks = merged;
+        continue;
+      }
       if((value !== '' && value !== undefined && value !== null) &&
          (target[key] === '' || target[key] === undefined || target[key] === null)) {
         target[key] = value;
@@ -2399,6 +2420,9 @@ function parseMainline(rows) {
     // Build pile dates array (only up to pileCount)
     const pileDates = [c[2],c[3],c[4],c[5],c[6],c[7],c[8],c[9],c[10]]
       .slice(0, pileCount).map(cellVal);
+    const pilePdfLinks = [c[2],c[3],c[4],c[5],c[6],c[7],c[8],c[9],c[10]]
+      .slice(0, pileCount)
+      .map((cell, idx) => cellLink(cell) || lookupMainlinePilePdf(pier, idx + 1));
     const pilesComplete = pileDates.filter(Boolean).length;
     const pcPreLegacy = cellVal(c[19]);
     const pcPostLegacy = cellVal(c[20]);
@@ -2411,8 +2435,10 @@ function parseMainline(rows) {
       pier, cfg, pileCount, pileDia,
       p1:cellVal(c[2]),p2:cellVal(c[3]),p3:cellVal(c[4]),p4:cellVal(c[5]),
       p5:cellVal(c[6]),p6:cellVal(c[7]),p7:cellVal(c[8]),p8:cellVal(c[9]),p9:cellVal(c[10]),
+      pdf_p1:pilePdfLinks[0]||'',pdf_p2:pilePdfLinks[1]||'',pdf_p3:pilePdfLinks[2]||'',pdf_p4:pilePdfLinks[3]||'',
+      pdf_p5:pilePdfLinks[4]||'',pdf_p6:pilePdfLinks[5]||'',pdf_p7:pilePdfLinks[6]||'',pdf_p8:pilePdfLinks[7]||'',pdf_p9:pilePdfLinks[8]||'',
       extra1:cellVal(c[11]),extra2:cellVal(c[12]),total:cellVal(c[13]),
-      pilesComplete, pileDates,
+      pilesComplete, pileDates, pilePdfLinks,
       // Footing Excavation
       footing:cellVal(c[14]),
       // Blinding Concrete
@@ -2818,8 +2844,22 @@ function renderTable(key) {
       const color=done===n?'var(--green)':done>0?'var(--gold)':'var(--border)';
       return `<div style="display:flex;flex-direction:column;gap:3px">
         <div style="display:flex;gap:2px">${Array.from({length:n},(_,i)=>{
-          const k='p'+(i+1); const ok=!!d[k];
-          return `<div title="Pile ${i+1}${ok?': '+d[k]:': Not inspected'}" style="width:10px;height:16px;border-radius:2px;background:${ok?'var(--green)':'var(--bg3)'};border:1px solid ${ok?'var(--green)':'var(--border)'}"></div>`;
+          const pileNo = i + 1;
+          const k='p'+pileNo;
+          const ok=!!d[k];
+          const href = firstSheetLink(
+            (d.pilePdfLinks && d.pilePdfLinks[i]) ||
+            d['pdf_p'+pileNo] ||
+            lookupMainlinePilePdf(d.pier, pileNo)
+          );
+          const title = `Pile ${pileNo}${ok?': '+d[k]:': Not inspected'}${href?' · Open PDF':''}`;
+          const bg = ok ? 'var(--green)' : (href ? 'rgba(245,158,11,.18)' : 'var(--bg3)');
+          const border = href ? (ok ? 'var(--green)' : 'var(--gold)') : (ok ? 'var(--green)' : 'var(--border)');
+          const style = `width:16px;height:16px;border-radius:3px;background:${bg};border:1px solid ${border};display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:0.55rem;line-height:1;color:${ok?'#fff':'var(--text2)'}`;
+          if(!href) return `<div title="${escapeHtml(title)}" style="${style}">${pileNo}</div>`;
+          const safeHref = escapeHtml(href);
+          const safeTitle = escapeHtml(`Open PDF: ${d.pier} Bored Pile #${pileNo}`);
+          return `<a href="${safeHref}" class="js-pdf-link" data-pdf-url="${safeHref}" data-pdf-title="${safeTitle}" target="_blank" rel="noopener" title="${escapeHtml(title)}" style="${style};cursor:pointer;text-decoration:none;box-shadow:inset 0 -2px 0 rgba(255,255,255,.35)">${pileNo}</a>`;
         }).join('')}</div>
         <span style="font-size:0.65rem;color:${color};font-family:'DM Mono',monospace">${done}/${n}</span>
       </div>`;

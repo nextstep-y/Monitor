@@ -609,6 +609,7 @@ body.edit-mode .edit-hint{display:flex;}
         <button class="pdf-action-btn" type="button" onclick="rotatePdfViewer(-90)">↺ Rotate</button>
         <button class="pdf-action-btn" type="button" onclick="rotatePdfViewer(90)">↻ Rotate</button>
         <a class="pdf-action-btn primary" id="pdf-modal-open" href="#" target="_blank" rel="noopener">↗ Open Original</a>
+        <a class="pdf-action-btn" id="pdf-modal-download" href="#" target="_blank" rel="noopener">⇩ Download</a>
         <button class="pdf-action-btn" type="button" onclick="closePdfViewer()">✕ Close</button>
       </div>
     </div>
@@ -1849,6 +1850,11 @@ function drivePreviewUrl(url) {
   return match ? `https://drive.google.com/file/d/${match[1]}/preview` : url;
 }
 
+function driveDownloadUrl(url) {
+  const match = String(url || '').match(/drive\.google\.com\/file\/d\/([^/]+)/);
+  return match ? `https://drive.google.com/uc?export=download&id=${match[1]}` : url;
+}
+
 let pdfViewerRotation = 0;
 
 function updatePdfViewerRotation() {
@@ -1868,9 +1874,11 @@ function openPdfViewer(url, title='Open PDF') {
   const modal = document.getElementById('pdf-modal');
   const frame = document.getElementById('pdf-frame');
   const open = document.getElementById('pdf-modal-open');
+  const download = document.getElementById('pdf-modal-download');
   const titleEl = document.getElementById('pdf-modal-title');
   if(titleEl) titleEl.textContent = title;
   if(open) open.href = href;
+  if(download) download.href = driveDownloadUrl(href);
   if(frame) frame.src = drivePreviewUrl(href);
   if(modal) modal.classList.add('open');
   return true;

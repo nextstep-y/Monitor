@@ -422,7 +422,7 @@ body.edit-mode .edit-hint{display:flex;}
       </div>
       <div class="overflow-x">
         <table>
-          <thead><tr><th>Pile No.</th><th>Casing Inspection</th><th>Pile Deviate Date</th><th>Status</th><th>Remark</th><th></th></tr></thead>
+          <thead><tr><th style="min-width:110px">Pile No.</th><th style="min-width:140px">Casing Inspection</th><th style="min-width:180px">Pile Deviate</th><th style="min-width:110px">Status</th></tr></thead>
           <tbody id="angeles-tbody"></tbody>
         </table>
       </div>
@@ -453,7 +453,7 @@ body.edit-mode .edit-hint{display:flex;}
       </div>
       <div class="overflow-x">
         <table>
-          <thead><tr><th>Pile No.</th><th>Casing Inspection</th><th>Pile Deviate Date</th><th>Status</th><th>Remark</th><th></th></tr></thead>
+          <thead><tr><th style="min-width:110px">Pile No.</th><th style="min-width:140px">Casing Inspection</th><th style="min-width:180px">Pile Deviate</th><th style="min-width:110px">Status</th></tr></thead>
           <tbody id="clark-tbody"></tbody>
         </table>
       </div>
@@ -477,7 +477,7 @@ body.edit-mode .edit-hint{display:flex;}
       </div>
       <div class="overflow-x">
         <table>
-          <thead><tr><th>Point Name</th><th>Post</th><th>Casing Inspection</th><th>Pile Deviate</th><th>Remark</th><th></th></tr></thead>
+          <thead><tr><th style="min-width:110px">Point Name</th><th style="min-width:80px">Post</th><th style="min-width:140px">Casing Inspection</th><th style="min-width:180px">Pile Deviate</th><th style="min-width:110px">Status</th></tr></thead>
           <tbody id="battery-tbody"></tbody>
         </table>
       </div>
@@ -2661,6 +2661,16 @@ function linkedDate(date, pdfUrl, title='Open PDF', color='var(--green)', emptyT
   return `<span class="mono" style="font-size:0.75rem;color:${color}">${date}</span>`;
 }
 
+function stationWorkCell(date, pdfUrl, title, remark='') {
+  const hasData = date || pdfUrl || remark;
+  if(!hasData) return '<span class="muted">—</span>';
+  const rows = [`<div>${linkedDate(date, pdfUrl, `Open PDF: ${title}`, 'var(--green)', 'Not surveyed')}</div>`];
+  if(remark) {
+    rows.push(`<div style="font-size:0.68rem;color:var(--text2);margin-top:3px">${statusBadge(remark)}</div>`);
+  }
+  return `<div style="display:flex;flex-direction:column;gap:1px;min-width:150px">${rows.join('')}</div>`;
+}
+
 // Inline editable cell
 function editCell(key,id,field,val,type='text'){
   if(!editMode) return;
@@ -2833,12 +2843,10 @@ function renderTable(key) {
 
   if(key==='angeles'||key==='clark'){
     tbody.innerHTML=paged.map(d=>`<tr>
-      <td class="mono editable"  style="font-weight:600">${d.p||'—'}</td>
-      <td style="cursor:default">${linkedDate(d.casing,d.pdf_casing,'Open PDF: Casing','var(--green)')}</td>
-      <td style="cursor:default">${linkedDate(d.deviate,d.pdf_deviate,'Open PDF: Pile Deviate','var(--green)','Not surveyed')}</td>
+      <td class="mono editable" style="font-weight:600;white-space:nowrap">${d.p||'—'}</td>
+      <td style="cursor:default">${stationWorkCell(d.casing,d.pdf_casing,'Casing Inspection')}</td>
+      <td style="cursor:default">${stationWorkCell(d.deviate,d.pdf_deviate,'Pile Deviate',d.remark)}</td>
       <td>${statusBadge(d.remark)}</td>
-      <td\\'")}','select')">${d.remark||'<span class="muted">—</span>'}</td>
-      
     </tr>`).join('');
   } else if(key==='mainline'){
     function pileBar(d){
@@ -2951,12 +2959,11 @@ function renderTable(key) {
     </tr>`).join('');
   } else if(key==='battery'){
     tbody.innerHTML=paged.map(d=>`<tr>
-      <td class="mono editable" >${d.point||'—'}</td>
-      <td style="cursor:default">${d.post||'<span class="muted">—</span>'}</td>
-      <td style="cursor:default">${linkedDate(d.casing,d.pdf_casing,'Open PDF: Casing','var(--green)')}</td>
-      <td style="cursor:default">${linkedDate(d.deviate,d.pdf_deviate,'Open PDF: Pile Deviate','var(--green)')}</td>
-      <td\\'")}'")">${d.remark||'<span class="muted">—</span>'}</td>
-      
+      <td class="mono editable" style="font-weight:600;white-space:nowrap">${d.point||'—'}</td>
+      <td style="cursor:default"><span class="badge badge-na" style="font-size:0.68rem">${d.post||'—'}</span></td>
+      <td style="cursor:default">${stationWorkCell(d.casing,d.pdf_casing,'Casing Inspection')}</td>
+      <td style="cursor:default">${stationWorkCell(d.deviate,d.pdf_deviate,'Pile Deviate',d.remark)}</td>
+      <td>${statusBadge(d.remark)}</td>
     </tr>`).join('');
   } else if(key==='align'){
     tbody.innerHTML=paged.map(d=>{

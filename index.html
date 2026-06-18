@@ -1552,6 +1552,7 @@ if (typeof window !== 'undefined') {
 }
 </script>
 <script src="./bored-pile-pdf-index.js"></script>
+<script src="./station-pdf-index.js"></script>
 <script>
 // ============================================================
 // DEFAULT DATA
@@ -1974,6 +1975,46 @@ function lookupMainlinePilePdf(pier, pileNo) {
   return suffixMatch ? files[suffixMatch] : '';
 }
 
+function normalizeStationPdfKey(value) {
+  return String(value || '').toUpperCase().replace(/[^A-Z0-9]+/g, '');
+}
+
+function stationPdfKeyVariants(value, post='') {
+  const raw = String(value || '').trim().toUpperCase();
+  const normalized = normalizeStationPdfKey(raw);
+  const variants = new Set([normalized]);
+  const bpMatch = normalized.match(/^BP0*(\d+)$/);
+  if(bpMatch) variants.add(`BP${parseInt(bpMatch[1], 10)}`);
+  const batteryMatch = normalized.match(/^BP([34])0*(\d{1,2})0*(\d{1,2})$/);
+  if(batteryMatch) {
+    const [, bp, group, point] = batteryMatch;
+    variants.add(`BP${bp}${parseInt(group, 10)}${parseInt(point, 10)}`);
+    variants.add(`BP${bp}${String(parseInt(group, 10)).padStart(2, '0')}${parseInt(point, 10)}`);
+  }
+  const sheetBatteryMatch = raw.match(/BP\s*([34])\s*[- ]*\(?\s*(\d{1,2})\s*\)?\s*#\s*(\d{1,2})/i);
+  if(sheetBatteryMatch) {
+    const [, bp, group, point] = sheetBatteryMatch;
+    variants.add(`BP${bp}${parseInt(group, 10)}${parseInt(point, 10)}`);
+    variants.add(`BP${bp}${String(parseInt(group, 10)).padStart(2, '0')}${parseInt(point, 10)}`);
+  }
+  if(post && !normalized.startsWith(normalizeStationPdfKey(post))) {
+    stationPdfKeyVariants(`${post}-${raw}`).forEach(v => variants.add(v));
+  }
+  return [...variants].filter(Boolean);
+}
+
+function lookupStationPdf(section, point, type, post='') {
+  const index =
+    (typeof window !== 'undefined' && window.STATION_PDF_INDEX) ||
+    ((typeof STATION_PDF_INDEX !== 'undefined') ? STATION_PDF_INDEX : {});
+  const sectionMap = index[section] || {};
+  const map = sectionMap[type] || {};
+  for(const key of stationPdfKeyVariants(point, post)) {
+    if(map[key]) return map[key];
+  }
+  return '';
+}
+
 function setStatus(state, msg) {
   const dot = document.getElementById('status-dot');
   const lbl = document.getElementById('status-label');
@@ -2331,8 +2372,8 @@ async function loadFromSheets() {
     const alRows  = await fetchTabSafe(TAB_NAMES.align, 'A:Q');
 
     const ml  = parseMainline(mlRows);
-    const ang = parsePiles(angRows, 0);
-    const cl  = parsePiles(clRows, 0);
+    const ang = parsePiles(angRows, 0, 'angeles');
+    const cl  = parsePiles(clRows, 0, 'clark');
     const sub  = parseSubstation(subRows18);
     const s18  = parseSubstation(subRows18, 'SS18');
     const s19  = parseSubstation(subRows19, 'SS19');
@@ -2499,7 +2540,7 @@ function parseMainline(rows) {
 }
 
 // ── PARSE ANGELES / CLARK ────────────────────────────────────
-function parsePiles(rows, startRow=0) {
+function parsePiles(rows, startRow=0, stationKey='') {
   const result = [];
   let id = 1;
   for(let i = startRow; i < rows.length; i++) {
@@ -2525,8 +2566,8 @@ function parsePiles(rows, startRow=0) {
       casing:      cellVal(c[1]),
       deviate:     cellVal(c[2]),
       remark:      cellVal(c[3]),
-      pdf_casing:  cellLink(c[1]) || pdfLink(c[4]),
-      pdf_deviate: cellLink(c[2]) || pdfLink(c[5]),
+      pdf_casing:  cellLink(c[1]) || pdfLink(c[4]) || lookupStationPdf(stationKey, p, 'casing'),
+      pdf_deviate: cellLink(c[2]) || pdfLink(c[5]) || lookupStationPdf(stationKey, p, 'deviate'),
     });
   }
   return result;
@@ -2574,8 +2615,8 @@ function parseBattery(rows) {
         casing: cellVal(c[1]),
         deviate: cellVal(c[2]),
         remark: cellVal(c[3])||'',
-        pdf_casing: cellLink(c[1]),
-        pdf_deviate: cellLink(c[2]),
+        pdf_casing: cellLink(c[1]) || lookupStationPdf('battery', p1, 'casing', 'BP3'),
+        pdf_deviate: cellLink(c[2]) || lookupStationPdf('battery', p1, 'deviate', 'BP3'),
       });
     }
     const p2 = cellVal(c[7]);
@@ -2585,8 +2626,8 @@ function parseBattery(rows) {
         casing: cellVal(c[8]),
         deviate: cellVal(c[9]),
         remark: cellVal(c[10])||'',
-        pdf_casing: cellLink(c[8]),
-        pdf_deviate: cellLink(c[9]),
+        pdf_casing: cellLink(c[8]) || lookupStationPdf('battery', p2, 'casing', 'BP4'),
+        pdf_deviate: cellLink(c[9]) || lookupStationPdf('battery', p2, 'deviate', 'BP4'),
       });
     }
   }

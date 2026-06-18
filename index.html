@@ -354,7 +354,7 @@ body.edit-mode .edit-hint{display:flex;}
             <th colspan="3" style="text-align:center;border-bottom:1px solid var(--border)">Bored Piles</th>
             <th rowspan="2" style="min-width:90px">Footing<br>Excavation</th>
             <th rowspan="2" style="min-width:90px">Blinding<br>Concrete</th>
-            <th colspan="3" style="text-align:center;border-bottom:1px solid var(--border)">Pile Deviate</th>
+            <th rowspan="2" style="min-width:170px">Pile<br>Deviate</th>
             <th colspan="3" style="text-align:center;border-bottom:1px solid var(--border)">Pile Cap</th>
             <th colspan="2" style="text-align:center;border-bottom:1px solid var(--border)">Pier Column 1st Lift</th>
             <th colspan="3" style="text-align:center;border-bottom:1px solid var(--border)">Pier Column 2nd Lift</th>
@@ -365,9 +365,6 @@ body.edit-mode .edit-hint{display:flex;}
             <th style="min-width:60px">Count</th>
             <th style="min-width:60px">Size (mm)</th>
             <th style="min-width:80px">Inspected</th>
-            <th style="min-width:90px">Date</th>
-            <th style="min-width:100px">Out-Location</th>
-            <th style="min-width:130px">Rebar Remark</th>
             <th style="min-width:90px">Pre-Pour</th>
             <th style="min-width:90px">Post-Pour</th>
             <th style="min-width:110px">Remark</th>
@@ -2900,6 +2897,20 @@ function renderTable(key) {
     function datePdfCell(date, pdfUrl, title, color='var(--green)'){
       return linkedDate(date, pdfUrl, `Open PDF: ${title}`, color);
     }
+    function pileDeviateCell(d){
+      const hasData = d.pile_dev_date || d.pdf_piledev || d.pile_dev_out_loc || d.pile_dev_rebar;
+      if(!hasData) return '<span class="muted">—</span>';
+      const rows = [
+        `<div>${datePdfCell(d.pile_dev_date,d.pdf_piledev,'Pile Deviate','var(--green)')}</div>`
+      ];
+      if(d.pile_dev_out_loc) {
+        rows.push(`<div style="font-size:0.68rem;color:var(--text2);margin-top:3px">Out-Loc: <span class="mono">${escapeHtml(d.pile_dev_out_loc)}</span></div>`);
+      }
+      if(d.pile_dev_rebar) {
+        rows.push(`<div style="font-size:0.68rem;color:var(--text2);margin-top:3px">Rebar: ${remarkBadge(d.pile_dev_rebar)}</div>`);
+      }
+      return `<div style="display:flex;flex-direction:column;gap:1px;min-width:150px">${rows.join('')}</div>`;
+    }
     function workCell(pre, post){
       if(!pre&&!post) return '<span class="muted">—</span>';
       if(pre&&post) return `<div style="font-size:0.72rem"><div style="color:var(--text2)">Pre: <span style="font-family:'DM Mono',monospace">${pre}</span></div><div style="color:var(--green)">Post: <span style="font-family:'DM Mono',monospace">${post}</span></div></div>`;
@@ -2914,9 +2925,7 @@ function renderTable(key) {
       <td>${pileBar(d)}</td>
       <td>${datePdfCell(d.footing,d.pdf_footing,'Footing Excavation','var(--green)')}</td>
       <td>${datePdfCell(d.blinding,d.pdf_blinding,'Blinding Concrete','var(--green)')}</td>
-      <td>${datePdfCell(d.pile_dev_date,d.pdf_piledev,'Pile Deviate','var(--green)')}</td>
-      <td>${d.pile_dev_out_loc||'<span class="muted">—</span>'}</td>
-      <td>${remarkBadge(d.pile_dev_rebar)}</td>
+      <td>${pileDeviateCell(d)}</td>
       <td>${datePdfCell(d.pc_prepour,d.pdf_pc_pre,'Pile Cap Pre-Pour','var(--text2)')}</td>
       <td>${datePdfCell(d.pc_postpour,d.pdf_pc_post,'Pile Cap Post-Pour','var(--green)')}</td>
       <td>${remarkBadge(d.pc_remark)}</td>

@@ -417,11 +417,16 @@ body.edit-mode .edit-hint{display:flex;}
         <thead><tr>
           <th style="min-width:88px">CIS</th>
           <th style="min-width:132px">Span</th>
-          <th style="min-width:170px">Stage</th>
-          <th style="min-width:92px">Date</th>
-          <th style="min-width:82px">WIR</th>
-          <th style="min-width:260px">PDF</th>
-          <th style="min-width:210px">Folder</th>
+          <th style="min-width:120px">Bottom Formwork</th>
+          <th style="min-width:150px">Bottom Slab / Blister / End Wall</th>
+          <th style="min-width:120px">Web / Inner Wall</th>
+          <th style="min-width:120px">Duct Lower</th>
+          <th style="min-width:120px">Top Slab Formwork</th>
+          <th style="min-width:120px">Top Slab As-Built</th>
+          <th style="min-width:130px">Shear Key / Seismic</th>
+          <th style="min-width:110px">Top Drain</th>
+          <th style="min-width:150px">Check Elevation / Load Test</th>
+          <th style="min-width:150px">Remark</th>
         </tr></thead>
         <tbody id="cis-tbody"></tbody>
       </table>
@@ -1794,7 +1799,7 @@ let DB = JSON.parse(JSON.stringify(DEFAULT));
 DB.ss18 = []; DB.ss19 = []; DB.ss20 = []; DB.ss21 = [];
 DB.angeles_sigcom = [];
 DB.clark_sigcom = [];
-DB.cis = getCisIndexRecords().map((d, i) => ({ id: i + 1, ...d }));
+DB.cis = [];
 let editMode = false;
 let nextId = { angeles:200, angeles_sigcom:100, clark:100, clark_sigcom:100, sub:100, mainline:100, cis:100, battery:100, align:100 };
 
@@ -2094,6 +2099,120 @@ function getCisIndexRecords() {
     ((typeof CIS_PDF_INDEX !== 'undefined') ? CIS_PDF_INDEX : {});
   return Array.isArray(index.records) ? index.records : [];
 }
+
+const CIS_STAGE_COLUMNS = [
+  {
+    key: 'bottom_formwork',
+    label: 'Bottom Formwork',
+    aliases: ['bottom formwork', 'bottom formworks', 'bottom soffit formwork', 'bottom of soffit formwork']
+  },
+  {
+    key: 'bottom_slab',
+    label: 'Bottom Slab / Blister / End Wall',
+    aliases: ['bottom slab / blister / end wall', 'bottom slab', 'blister', 'end wall', 'bottom slab as-built', 'bottom slab as built', 'bottom slab formwork']
+  },
+  {
+    key: 'web_inner',
+    label: 'Web / Inner Wall',
+    aliases: ['web / inner wall', 'web', 'inner wall', 'webs and inner walls', 'web, end wall & blister']
+  },
+  {
+    key: 'duct_lower',
+    label: 'Duct Lower',
+    aliases: ['duct lower', 'duct lower formwork', 'duct lower as-built', 'duct lower as built']
+  },
+  {
+    key: 'top_slab_formwork',
+    label: 'Top Slab Formwork',
+    aliases: ['top slab formwork', 'top slab formworks', 'formwork top slab', 'formworks inspection for top slab']
+  },
+  {
+    key: 'top_slab_asbuilt',
+    label: 'Top Slab As-Built',
+    aliases: ['top slab as-built', 'top slab as built', 'as-built top slab', 'as built top slab']
+  },
+  {
+    key: 'shear_key',
+    label: 'Shear Key / Seismic',
+    aliases: ['shear key / seismic', 'shear key', 'seismic', 'seismic restrainer']
+  },
+  {
+    key: 'top_drain',
+    label: 'Top Drain',
+    aliases: ['top drain', 'top drain as-built', 'top drain as built']
+  },
+  {
+    key: 'check_elevation',
+    label: 'Check Elevation / Load Test',
+    aliases: ['check elevation', 'load test', 'before load test', 'after unload', 'loading']
+  },
+  {
+    key: 'other',
+    label: 'Other',
+    aliases: ['other']
+  }
+];
+
+const CIS_STAGE_BY_KEY = Object.fromEntries(CIS_STAGE_COLUMNS.map(stage => [stage.key, stage]));
+
+function normalizeCisHeader(value) {
+  return String(value || '').toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]+/g, ' ').trim();
+}
+
+function cisStageKey(stage) {
+  const normalized = normalizeCisHeader(stage);
+  if(!normalized) return 'other';
+  for(const column of CIS_STAGE_COLUMNS) {
+    if(column.aliases.some(alias => {
+      const normalizedAlias = normalizeCisHeader(alias);
+      return normalized === normalizedAlias || normalized.includes(normalizedAlias) || normalizedAlias.includes(normalized);
+    })) return column.key;
+  }
+  return 'other';
+}
+
+function makeCisWideRow(id, cis, span) {
+  const row = { id, cis, span, remark: '' };
+  CIS_STAGE_COLUMNS.forEach(stage => {
+    row[stage.key] = { date: '', url: '', file: '', wir: '', docs: [] };
+  });
+  return row;
+}
+
+function addCisDoc(row, stageKey, doc) {
+  const key = CIS_STAGE_BY_KEY[stageKey] ? stageKey : 'other';
+  const work = row[key] || { date: '', url: '', file: '', wir: '', docs: [] };
+  const normalizedDoc = {
+    date: doc.date || '',
+    url: doc.url || '',
+    file: doc.file || '',
+    wir: doc.wir || '',
+    folder: doc.folder || '',
+    stage: doc.stage || CIS_STAGE_BY_KEY[key].label
+  };
+  work.docs = work.docs || [];
+  work.docs.push(normalizedDoc);
+  if(!work.date && normalizedDoc.date) work.date = normalizedDoc.date;
+  if(!work.url && normalizedDoc.url) work.url = normalizedDoc.url;
+  if(!work.file && normalizedDoc.file) work.file = normalizedDoc.file;
+  if(!work.wir && normalizedDoc.wir) work.wir = normalizedDoc.wir;
+  row[key] = work;
+}
+
+function buildCisWideRows(records) {
+  const rowsByKey = new Map();
+  records.forEach(record => {
+    const cis = record.cis || '';
+    const span = record.span || '';
+    if(!span) return;
+    const key = `${cis}||${span}`;
+    if(!rowsByKey.has(key)) rowsByKey.set(key, makeCisWideRow(rowsByKey.size + 1, cis, span));
+    addCisDoc(rowsByKey.get(key), cisStageKey(record.stage), record);
+  });
+  return [...rowsByKey.values()];
+}
+
+DB.cis = buildCisWideRows(getCisIndexRecords());
 
 function normalizeStationPdfKey(value) {
   return String(value || '').toUpperCase().replace(/[^A-Z0-9]+/g, '');
@@ -2524,7 +2643,7 @@ async function loadFromSheets() {
 	    const alRows  = await fetchTabSafe(TAB_NAMES.align, 'A:Q');
 
 	    update('Loading Cast In-Situ...');
-	    const cisRows = await fetchTabSafe(TAB_NAMES.cis, 'A:H');
+	    const cisRows = await fetchTabSafe(TAB_NAMES.cis, 'A:Z');
 
 	    const ml  = parseMainline(mlRows);
 	    const ang = parsePiles(angRows, 0, 'angeles', 0);
@@ -2704,27 +2823,73 @@ function parseMainline(rows) {
 
 // ── PARSE CAST IN-SITU ──────────────────────────────────────────
 function parseCis(rows) {
-  const result = [];
-  let id = 1;
   const headerIndex = rows.findIndex(row => {
     const c = row.c || [];
     return cellVal(c[0]).toLowerCase() === 'cis' &&
-      cellVal(c[1]).toLowerCase() === 'span' &&
-      cellVal(c[2]).toLowerCase() === 'stage';
+      cellVal(c[1]).toLowerCase() === 'span';
   });
   if(headerIndex < 0) return [];
+  const headers = (rows[headerIndex].c || []).map(cell => cellVal(cell));
+  const normalizedHeaders = headers.map(normalizeCisHeader);
+
+  const legacyStageIndex = normalizedHeaders.indexOf('stage');
+  if(legacyStageIndex >= 0) {
+    const records = [];
+    for(let i = headerIndex + 1; i < rows.length; i++) {
+      const c = rows[i].c || [];
+      const cis = cellVal(c[0]);
+      const span = cellVal(c[1]);
+      const stage = cellVal(c[2]);
+      const date = cellVal(c[3]);
+      const wir = cellVal(c[4]);
+      const file = cellVal(c[5]);
+      const url = cellLink(c[3]) || cellLink(c[5]) || cellLink(c[6]) || pdfLink(c[6]) || cellVal(c[6]);
+      const folder = cellVal(c[7]);
+      if(!cis && !span && !stage && !file) continue;
+      records.push({ cis, span, stage, date, wir, file, url, folder });
+    }
+    return buildCisWideRows(records);
+  }
+
+  const stageColumnMap = {};
+  CIS_STAGE_COLUMNS.forEach(stage => {
+    const aliases = [stage.label, ...stage.aliases].map(normalizeCisHeader);
+    const dateIndex = normalizedHeaders.findIndex(header =>
+      aliases.some(alias => header === alias || header.includes(alias)) &&
+      !header.includes('pdf') &&
+      !header.includes('link') &&
+      !header.includes('file')
+    );
+    const linkIndex = normalizedHeaders.findIndex(header =>
+      aliases.some(alias => header.includes(alias)) &&
+      (header.includes('pdf') || header.includes('link') || header.includes('file'))
+    );
+    if(dateIndex >= 0 || linkIndex >= 0) stageColumnMap[stage.key] = { dateIndex, linkIndex };
+  });
+
+  const remarkIndex = normalizedHeaders.findIndex(header => header === 'remark' || header === 'remarks' || header.includes('remark'));
+  const result = [];
   for(let i = headerIndex + 1; i < rows.length; i++) {
     const c = rows[i].c || [];
     const cis = cellVal(c[0]);
     const span = cellVal(c[1]);
-    const stage = cellVal(c[2]);
-    const date = cellVal(c[3]);
-    const wir = cellVal(c[4]);
-    const file = cellVal(c[5]);
-    const url = cellLink(c[5]) || cellLink(c[6]) || pdfLink(c[6]) || cellVal(c[6]);
-    const folder = cellVal(c[7]);
-    if(!cis && !span && !stage && !file) continue;
-    result.push({ id: id++, cis, span, stage, date, wir, file, url, folder });
+    if(!cis && !span) continue;
+    const row = makeCisWideRow(result.length + 1, cis, span);
+    if(remarkIndex >= 0) row.remark = cellVal(c[remarkIndex]);
+    Object.entries(stageColumnMap).forEach(([stageKey, indexes]) => {
+      const dateCell = indexes.dateIndex >= 0 ? c[indexes.dateIndex] : null;
+      const linkCell = indexes.linkIndex >= 0 ? c[indexes.linkIndex] : null;
+      const date = cellVal(dateCell);
+      const url = cellLink(dateCell) || cellLink(linkCell) || pdfLink(linkCell) || cellVal(linkCell);
+      if(!date && !url) return;
+      addCisDoc(row, stageKey, {
+        date,
+        url,
+        file: cellVal(linkCell),
+        stage: CIS_STAGE_BY_KEY[stageKey].label
+      });
+    });
+    result.push(row);
   }
   return result;
 }
@@ -2963,13 +3128,16 @@ function getFiltered(key) {
 	  } else if(key==='cis'){
 	    if(s.filter!=='all') data=data.filter(d=>(d.cis||'')===s.filter);
 	    if(search) {
-	      data=data.filter(d=>
-	        (d.cis||'').toLowerCase().includes(search) ||
-	        (d.span||'').toLowerCase().includes(search) ||
-	        (d.stage||'').toLowerCase().includes(search) ||
-	        (d.wir||'').toLowerCase().includes(search) ||
-	        (d.file||'').toLowerCase().includes(search)
-	      );
+	      data=data.filter(d=>{
+	        const docText = CIS_STAGE_COLUMNS.flatMap(stage => {
+	          const work = d[stage.key] || {};
+	          return [stage.label, work.date, work.wir, work.file, ...(work.docs || []).flatMap(doc => [doc.stage, doc.date, doc.wir, doc.file, doc.folder])];
+	        }).join(' ').toLowerCase();
+	        return (d.cis||'').toLowerCase().includes(search) ||
+	          (d.span||'').toLowerCase().includes(search) ||
+	          (d.remark||'').toLowerCase().includes(search) ||
+	          docText.includes(search);
+	      });
 	    }
 	  } else if(key==='sub'){
 	    if(search) data=data.filter(d=>(d.p||'').toLowerCase().includes(search));
@@ -3198,26 +3366,43 @@ function renderTable(key) {
 	      <td>${remarkBadge(d.br_remark)}</td>
 	    </tr>`).join('');
 	  } else if(key==='cis'){
-	    function cisStageBadge(stage) {
-	      if(!stage) return '<span class="muted">—</span>';
-	      const lo = stage.toLowerCase();
-	      const color = lo.includes('as-built') || lo.includes('as built') ? 'var(--green)' :
-	        lo.includes('elevation') ? 'var(--accent)' :
-	        lo.includes('formwork') ? 'var(--gold)' : 'var(--text2)';
-	      return `<span class="badge badge-na" style="font-size:0.68rem;color:${color};border-color:rgba(148,163,184,.22)" title="${escapeHtml(stage)}">${escapeHtml(stage)}</span>`;
+	    function cisWorkCell(work, title) {
+	      const docs = (work && Array.isArray(work.docs)) ? work.docs : [];
+	      const primary = docs.find(doc => doc.date || doc.url) || work || {};
+	      if(!primary.date && !primary.url && !docs.length) return '<span class="muted">—</span>';
+	      const label = primary.date || (primary.wir ? `WIR ${primary.wir}` : 'PDF');
+	      const href = firstSheetLink(primary.url);
+	      const main = href ?
+	        buildPdfAnchor(href, `${escapeHtml(label)} 📄`, `Open PDF: ${title}`, 'var(--green)') :
+	        `<span class="mono" style="font-size:0.75rem;color:var(--green)">${escapeHtml(label)}</span>`;
+	      const meta = [];
+	      if(primary.wir) meta.push(`WIR ${escapeHtml(primary.wir)}`);
+	      if(docs.length > 1) meta.push(`+${docs.length - 1} PDF`);
+	      const docLinks = docs.slice(1, 4).map((doc, index) => {
+	        const docHref = firstSheetLink(doc.url);
+	        if(!docHref) return '';
+	        return buildPdfAnchor(docHref, `#${index + 2}`, `Open PDF: ${doc.file || title}`, 'var(--text2)');
+	      }).filter(Boolean).join(' ');
+	      return `<div style="display:flex;flex-direction:column;gap:3px;min-width:110px">
+	        <div>${main}</div>
+	        ${meta.length ? `<div style="font-size:0.65rem;color:var(--text3)">${meta.join(' · ')}</div>` : ''}
+	        ${docLinks ? `<div style="display:flex;gap:4px;flex-wrap:wrap">${docLinks}</div>` : ''}
+	      </div>`;
 	    }
 	    tbody.innerHTML=paged.map(d=>{
-	      const file = d.file || 'PDF';
-	      const shortFile = file.length > 58 ? file.slice(0,55) + '...' : file;
-	      const pdf = d.url ? buildPdfAnchor(firstSheetLink(d.url), 'PDF', `Open PDF: ${file}`, 'var(--green)') : '<span class="muted">—</span>';
 	      return `<tr>
 	        <td class="mono" style="font-weight:600;white-space:nowrap">${escapeHtml(d.cis||'—')}</td>
 	        <td class="mono" style="white-space:nowrap">${escapeHtml(d.span||'—')}</td>
-	        <td>${cisStageBadge(d.stage)}</td>
-	        <td>${d.date ? `<span class="mono">${escapeHtml(d.date)}</span>` : '<span class="muted">—</span>'}</td>
-	        <td class="mono">${escapeHtml(d.wir||'—')}</td>
-	        <td><div style="display:flex;align-items:center;gap:8px;min-width:240px"><span style="font-size:0.72rem;color:var(--text2)" title="${escapeHtml(file)}">${escapeHtml(shortFile)}</span>${pdf}</div></td>
-	        <td style="font-size:0.68rem;color:var(--text3)" title="${escapeHtml(d.folder||'')}">${escapeHtml(d.folder||'—')}</td>
+	        <td>${cisWorkCell(d.bottom_formwork, 'Bottom Formwork')}</td>
+	        <td>${cisWorkCell(d.bottom_slab, 'Bottom Slab / Blister / End Wall')}</td>
+	        <td>${cisWorkCell(d.web_inner, 'Web / Inner Wall')}</td>
+	        <td>${cisWorkCell(d.duct_lower, 'Duct Lower')}</td>
+	        <td>${cisWorkCell(d.top_slab_formwork, 'Top Slab Formwork')}</td>
+	        <td>${cisWorkCell(d.top_slab_asbuilt, 'Top Slab As-Built')}</td>
+	        <td>${cisWorkCell(d.shear_key, 'Shear Key / Seismic')}</td>
+	        <td>${cisWorkCell(d.top_drain, 'Top Drain')}</td>
+	        <td>${cisWorkCell(d.check_elevation, 'Check Elevation / Load Test')}</td>
+	        <td style="font-size:0.72rem;color:var(--text2)">${escapeHtml(d.remark||'')}</td>
 	      </tr>`;
 	    }).join('');
 	  } else if(key==='sub'){

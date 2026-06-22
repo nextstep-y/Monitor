@@ -234,11 +234,12 @@ body.edit-mode .edit-hint{display:flex;}
     </div>
   </div>
   <nav class="header-nav">
-    <button class="nav-btn active" onclick="showSection('overview',this)">Overview</button>
-    <button class="nav-btn" onclick="showSection('mainline',this)">Main Line</button>
-    <button class="nav-btn" onclick="showSection('stations',this)">Stations</button>
-    <button class="nav-btn" onclick="showSection('substation',this)">Substation</button>
-    <button class="nav-btn" onclick="showSection('alignment',this)">Alignment</button>
+	    <button class="nav-btn active" onclick="showSection('overview',this)">Overview</button>
+	    <button class="nav-btn" onclick="showSection('mainline',this)">Main Line</button>
+	    <button class="nav-btn" onclick="showSection('cis',this)">CIS</button>
+	    <button class="nav-btn" onclick="showSection('stations',this)">Stations</button>
+	    <button class="nav-btn" onclick="showSection('substation',this)">Substation</button>
+	    <button class="nav-btn" onclick="showSection('alignment',this)">Alignment</button>
   </nav>
   <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
     <div class="save-indicator"><div class="save-dot" id="save-dot"></div><span id="save-label">Saved</span></div>
@@ -388,6 +389,47 @@ body.edit-mode .edit-hint{display:flex;}
       <button class="page-btn" id="mainline-prev" onclick="changePage('mainline',-1)">← Prev</button>
       <span class="page-info" id="mainline-page-info"></span>
       <button class="page-btn" id="mainline-next" onclick="changePage('mainline',1)">Next →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== CAST IN-SITU ===== -->
+<div id="section-cis" class="section">
+  <div class="section-title"><span class="dot"></span>CIS (Cast In-Situ) Monitoring</div>
+  <div class="table-card">
+    <div class="table-toolbar">
+      <div style="display:flex;gap:8px;align-items:center;">
+        <div class="search-wrap"><input class="search-input" id="cis-search" placeholder="Search CIS, span, stage, WIR..." oninput="pageState['cis'].search=this.value;pageState['cis'].page=1;renderTableDebounced('cis')"></div>
+        <div class="filter-group">
+          <button class="filter-btn active" onclick="setFilter('cis','all',this)">All</button>
+          <button class="filter-btn" onclick="setFilter('cis','CIS40-14',this)">CIS40-14</button>
+          <button class="filter-btn" onclick="setFilter('cis','CIS50-6',this)">CIS50-6</button>
+          <button class="filter-btn" onclick="setFilter('cis','CIS50-8',this)">CIS50-8</button>
+          <button class="filter-btn" onclick="setFilter('cis','CIS60-2',this)">CIS60-2</button>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <span class="table-count" id="cis-count"></span>
+      </div>
+    </div>
+    <div class="overflow-x">
+      <table>
+        <thead><tr>
+          <th style="min-width:88px">CIS</th>
+          <th style="min-width:132px">Span</th>
+          <th style="min-width:170px">Stage</th>
+          <th style="min-width:92px">Date</th>
+          <th style="min-width:82px">WIR</th>
+          <th style="min-width:260px">PDF</th>
+          <th style="min-width:210px">Folder</th>
+        </tr></thead>
+        <tbody id="cis-tbody"></tbody>
+      </table>
+    </div>
+    <div class="pagination">
+      <button class="page-btn" id="cis-prev" onclick="changePage('cis',-1)">← Prev</button>
+      <span class="page-info" id="cis-page-info"></span>
+      <button class="page-btn" id="cis-next" onclick="changePage('cis',1)">Next →</button>
     </div>
   </div>
 </div>
@@ -1616,6 +1658,7 @@ if (typeof window !== 'undefined') {
 }
 </script>
 <script src="./bored-pile-pdf-index.js"></script>
+<script src="./cis-pdf-index.js"></script>
 <script src="./station-pdf-index.js"></script>
 <script src="./substation-pdf-index.js"></script>
 <script>
@@ -1751,11 +1794,12 @@ let DB = JSON.parse(JSON.stringify(DEFAULT));
 DB.ss18 = []; DB.ss19 = []; DB.ss20 = []; DB.ss21 = [];
 DB.angeles_sigcom = [];
 DB.clark_sigcom = [];
+DB.cis = getCisIndexRecords().map((d, i) => ({ id: i + 1, ...d }));
 let editMode = false;
-let nextId = { angeles:200, angeles_sigcom:100, clark:100, clark_sigcom:100, sub:100, mainline:100, battery:100, align:100 };
+let nextId = { angeles:200, angeles_sigcom:100, clark:100, clark_sigcom:100, sub:100, mainline:100, cis:100, battery:100, align:100 };
 
 const pageState = {};
-['angeles','angeles_sigcom','clark','clark_sigcom','sub','ss18','ss19','ss20','ss21','mainline','battery','align'].forEach(k=>{
+['angeles','angeles_sigcom','clark','clark_sigcom','sub','ss18','ss19','ss20','ss21','mainline','cis','battery','align'].forEach(k=>{
   pageState[k]={page:1,perPage:20,filter:'all',search:''};
 });
 pageState.mainline.perPage=15;
@@ -1773,11 +1817,12 @@ const TAB_GIDS = {
   ss19:     '701289398',    // Substation 19
   ss20:     '564054978',    // Substation 20
   ss21:     '2069252308',   // Substation 21
-  battery:  '513271788',    // Battery Post
-  angeles:  '209101477',    // Angeles Station Piles
-  clark:    '1366222553',   // Clark Station Piles
-  align:    '1345613060',   // Final Alignment
-};
+	  battery:  '513271788',    // Battery Post
+	  angeles:  '209101477',    // Angeles Station Piles
+	  clark:    '1366222553',   // Clark Station Piles
+	  align:    '1345613060',   // Final Alignment
+	  cis:      '',             // Cast In-Situ (new tab, loaded by tab name when present)
+	};
 
 // Tab names in Google Sheets (must match exactly)
 const TAB_NAMES = {
@@ -1789,9 +1834,10 @@ const TAB_NAMES = {
   ss19:      'Substation 19',
   ss20:      'Substation 20',
   ss21:      'Substation 21',
-  battery:   'Battery Post',
-  align:     'Final Alignment',
-};
+	  battery:   'Battery Post',
+	  align:     'Final Alignment',
+	  cis:       'Cast In-Situ',
+	};
 
 // Google Sheets public gviz can lag behind authenticated Sheets data for some
 // recently edited As-Built cells. Keep these current values aligned with the
@@ -2040,6 +2086,13 @@ function lookupMainlinePilePdf(pier, pileNo) {
   if(direct) return direct;
   const suffixMatch = Object.keys(files).find(k => k.toLowerCase() === `${pileNo}a`);
   return suffixMatch ? files[suffixMatch] : '';
+}
+
+function getCisIndexRecords() {
+  const index =
+    (typeof window !== 'undefined' && window.CIS_PDF_INDEX) ||
+    ((typeof CIS_PDF_INDEX !== 'undefined') ? CIS_PDF_INDEX : {});
+  return Array.isArray(index.records) ? index.records : [];
 }
 
 function normalizeStationPdfKey(value) {
@@ -2467,11 +2520,14 @@ async function loadFromSheets() {
     update('Loading Battery Post...');
     const batRows = await fetchTabSafe(TAB_NAMES.battery, 'A:M');
 
-    update('Loading Final Alignment...');
-    const alRows  = await fetchTabSafe(TAB_NAMES.align, 'A:Q');
+	    update('Loading Final Alignment...');
+	    const alRows  = await fetchTabSafe(TAB_NAMES.align, 'A:Q');
 
-    const ml  = parseMainline(mlRows);
-    const ang = parsePiles(angRows, 0, 'angeles', 0);
+	    update('Loading Cast In-Situ...');
+	    const cisRows = await fetchTabSafe(TAB_NAMES.cis, 'A:H');
+
+	    const ml  = parseMainline(mlRows);
+	    const ang = parsePiles(angRows, 0, 'angeles', 0);
     const angSig = parsePiles(angRows, 0, 'angeles_sigcom', 4);
     const cl  = parsePiles(clRows, 0, 'clark', 0);
     const clSig = parsePiles(clRows, 0, 'clark_sigcom', 4);
@@ -2480,21 +2536,24 @@ async function loadFromSheets() {
     const s19  = parseSubstation(subRows19, 'SS19');
     const s20  = parseSubstation(subRows20, 'SS20');
     const s21  = parseSubstation(subRows21, 'SS21');
-    const bat = parseBattery(batRows);
-    const al  = parseAlignment(alRows);
+	    const bat = parseBattery(batRows);
+	    const al  = parseAlignment(alRows);
+	    const cis = parseCis(cisRows);
 
-    console.log('Parsed — mainline:', ml.length, 'angeles:', ang.length,
-      'angeles_sigcom:', angSig.length, 'clark:', cl.length, 'clark_sigcom:', clSig.length,
-      'ss18:', s18.length, 'ss19:', s19.length,
-      'ss20:', s20.length, 'ss21:', s21.length, 'bat:', bat.length, 'align:', al.length);
+	    console.log('Parsed — mainline:', ml.length, 'angeles:', ang.length,
+	      'angeles_sigcom:', angSig.length, 'clark:', cl.length, 'clark_sigcom:', clSig.length,
+	      'ss18:', s18.length, 'ss19:', s19.length,
+	      'ss20:', s20.length, 'ss21:', s21.length, 'bat:', bat.length, 'align:', al.length,
+	      'cis:', cis.length);
 
     if(ml.length  > 0) DB.mainline = ml;
     if(ang.length > 0) DB.angeles  = ang;
     if(angSig.length > 0) DB.angeles_sigcom = angSig;
     if(cl.length  > 0) DB.clark    = cl;
     if(clSig.length > 0) DB.clark_sigcom = clSig;
-    if(bat.length > 0) DB.battery  = bat;
-    if(al.length  > 0) DB.align    = al;
+	    if(bat.length > 0) DB.battery  = bat;
+	    if(al.length  > 0) DB.align    = al;
+	    if(cis.length > 0) DB.cis      = cis;
 
     // Assign each substation individually
     if(s18.length > 0) DB.ss18 = s18;
@@ -2639,6 +2698,33 @@ function parseMainline(rows) {
       ph_prepour: p893.ph_prepour,
       ph_postpour: p893.ph_postpour,
     });
+  }
+  return result;
+}
+
+// ── PARSE CAST IN-SITU ──────────────────────────────────────────
+function parseCis(rows) {
+  const result = [];
+  let id = 1;
+  const headerIndex = rows.findIndex(row => {
+    const c = row.c || [];
+    return cellVal(c[0]).toLowerCase() === 'cis' &&
+      cellVal(c[1]).toLowerCase() === 'span' &&
+      cellVal(c[2]).toLowerCase() === 'stage';
+  });
+  if(headerIndex < 0) return [];
+  for(let i = headerIndex + 1; i < rows.length; i++) {
+    const c = rows[i].c || [];
+    const cis = cellVal(c[0]);
+    const span = cellVal(c[1]);
+    const stage = cellVal(c[2]);
+    const date = cellVal(c[3]);
+    const wir = cellVal(c[4]);
+    const file = cellVal(c[5]);
+    const url = cellLink(c[5]) || cellLink(c[6]) || pdfLink(c[6]) || cellVal(c[6]);
+    const folder = cellVal(c[7]);
+    if(!cis && !span && !stage && !file) continue;
+    result.push({ id: id++, cis, span, stage, date, wir, file, url, folder });
   }
   return result;
 }
@@ -2871,11 +2957,22 @@ function getFiltered(key) {
     else if(s.filter==='oot') data=data.filter(d=>getStatus(d.remark)==='oot');
     else if(s.filter==='pending') data=data.filter(d=>!d.deviate);
     if(search) data=data.filter(d=>(d.p||'').toLowerCase().includes(search)||(d.remark||'').toLowerCase().includes(search));
-  } else if(key==='mainline'){
-    if(s.filter!=='all') data=data.filter(d=>(d.cfg||'').includes(s.filter));
-    if(search) data=data.filter(d=>(d.pier||'').toLowerCase().includes(search));
-  } else if(key==='sub'){
-    if(search) data=data.filter(d=>(d.p||'').toLowerCase().includes(search));
+	  } else if(key==='mainline'){
+	    if(s.filter!=='all') data=data.filter(d=>(d.cfg||'').includes(s.filter));
+	    if(search) data=data.filter(d=>(d.pier||'').toLowerCase().includes(search));
+	  } else if(key==='cis'){
+	    if(s.filter!=='all') data=data.filter(d=>(d.cis||'')===s.filter);
+	    if(search) {
+	      data=data.filter(d=>
+	        (d.cis||'').toLowerCase().includes(search) ||
+	        (d.span||'').toLowerCase().includes(search) ||
+	        (d.stage||'').toLowerCase().includes(search) ||
+	        (d.wir||'').toLowerCase().includes(search) ||
+	        (d.file||'').toLowerCase().includes(search)
+	      );
+	    }
+	  } else if(key==='sub'){
+	    if(search) data=data.filter(d=>(d.p||'').toLowerCase().includes(search));
   } else if(key==='battery'){
     if(search) data=data.filter(d=>(d.point||'').toLowerCase().includes(search)||(d.post||'').toLowerCase().includes(search));
   } else if(key==='align'){
@@ -3097,11 +3194,34 @@ function renderTable(key) {
       <td>${datePdfCell(d.ph_postpour,d.pdf_ph_post,'Pier Head Post-Pour','var(--green)')}</td>
       <td>${remarkBadge(d.ph_remark)}</td>
       <td>${datePdfCell(d.br_prepour,d.pdf_br_pre,'Bearing Plinths Pre-Pour','var(--text2)')}</td>
-      <td>${datePdfCell(d.br_postpour,d.pdf_br_post,'Bearing Plinths Post-Pour','var(--green)')}</td>
-      <td>${remarkBadge(d.br_remark)}</td>
-    </tr>`).join('');
-  } else if(key==='sub'){
-    tbody.innerHTML=paged.map(d=>`<tr>
+	      <td>${datePdfCell(d.br_postpour,d.pdf_br_post,'Bearing Plinths Post-Pour','var(--green)')}</td>
+	      <td>${remarkBadge(d.br_remark)}</td>
+	    </tr>`).join('');
+	  } else if(key==='cis'){
+	    function cisStageBadge(stage) {
+	      if(!stage) return '<span class="muted">—</span>';
+	      const lo = stage.toLowerCase();
+	      const color = lo.includes('as-built') || lo.includes('as built') ? 'var(--green)' :
+	        lo.includes('elevation') ? 'var(--accent)' :
+	        lo.includes('formwork') ? 'var(--gold)' : 'var(--text2)';
+	      return `<span class="badge badge-na" style="font-size:0.68rem;color:${color};border-color:rgba(148,163,184,.22)" title="${escapeHtml(stage)}">${escapeHtml(stage)}</span>`;
+	    }
+	    tbody.innerHTML=paged.map(d=>{
+	      const file = d.file || 'PDF';
+	      const shortFile = file.length > 58 ? file.slice(0,55) + '...' : file;
+	      const pdf = d.url ? buildPdfAnchor(firstSheetLink(d.url), 'PDF', `Open PDF: ${file}`, 'var(--green)') : '<span class="muted">—</span>';
+	      return `<tr>
+	        <td class="mono" style="font-weight:600;white-space:nowrap">${escapeHtml(d.cis||'—')}</td>
+	        <td class="mono" style="white-space:nowrap">${escapeHtml(d.span||'—')}</td>
+	        <td>${cisStageBadge(d.stage)}</td>
+	        <td>${d.date ? `<span class="mono">${escapeHtml(d.date)}</span>` : '<span class="muted">—</span>'}</td>
+	        <td class="mono">${escapeHtml(d.wir||'—')}</td>
+	        <td><div style="display:flex;align-items:center;gap:8px;min-width:240px"><span style="font-size:0.72rem;color:var(--text2)" title="${escapeHtml(file)}">${escapeHtml(shortFile)}</span>${pdf}</div></td>
+	        <td style="font-size:0.68rem;color:var(--text3)" title="${escapeHtml(d.folder||'')}">${escapeHtml(d.folder||'—')}</td>
+	      </tr>`;
+	    }).join('');
+	  } else if(key==='sub'){
+	    tbody.innerHTML=paged.map(d=>`<tr>
       <td class="mono" style="font-weight:600">${d.p||'—'}</td>
       <td>${linkedDate(d.date,d.pdf_insp,'Open PDF: Casing Inspection','var(--green)')}</td>
       <td>${linkedDate(d.deviate,d.pdf_deviate,'Open PDF: Pile Deviate','var(--green)')}</td>
@@ -3143,7 +3263,7 @@ function renderTable(key) {
   }
 }
 
-function renderAllTables(){Object.keys(_renderCache).forEach(k=>delete _renderCache[k]);['angeles','angeles_sigcom','clark','clark_sigcom','sub','mainline','battery','align'].forEach(renderTable);}
+function renderAllTables(){Object.keys(_renderCache).forEach(k=>delete _renderCache[k]);['angeles','angeles_sigcom','clark','clark_sigcom','sub','mainline','cis','battery','align'].forEach(renderTable);}
 
 function setFilter(key,val,btn){
   pageState[key].filter=val;pageState[key].page=1;

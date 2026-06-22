@@ -1617,6 +1617,7 @@ if (typeof window !== 'undefined') {
 </script>
 <script src="./bored-pile-pdf-index.js"></script>
 <script src="./station-pdf-index.js"></script>
+<script src="./substation-pdf-index.js"></script>
 <script>
 // ============================================================
 // DEFAULT DATA
@@ -2076,6 +2077,38 @@ function lookupStationPdf(section, point, type, post='') {
   const sectionMap = index[section] || {};
   const map = sectionMap[type] || {};
   for(const key of stationPdfKeyVariants(point, post)) {
+    if(map[key]) return map[key];
+  }
+  return '';
+}
+
+function normalizeSubstationPdfKey(value) {
+  return String(value || '').toUpperCase().replace(/[^A-Z0-9]+/g, '');
+}
+
+function substationPointParts(ssLabel, point) {
+  const raw = String(point || '').toUpperCase();
+  const ssMatch = raw.match(/SS\s*(18|19|20|21)/) || String(ssLabel || '').toUpperCase().match(/SS\s*(18|19|20|21)/);
+  const bpMatch = raw.match(/BP\s*-?\s*(\d{1,2})/) || raw.match(/#\s*(\d{1,2})/);
+  return {
+    ss: ssMatch ? `ss${ssMatch[1]}` : '',
+    bp: bpMatch ? `BP${parseInt(bpMatch[1], 10)}` : ''
+  };
+}
+
+function lookupSubstationPdf(ssLabel, point, type) {
+  const index =
+    (typeof window !== 'undefined' && window.SUBSTATION_PDF_INDEX) ||
+    ((typeof SUBSTATION_PDF_INDEX !== 'undefined') ? SUBSTATION_PDF_INDEX : {});
+  const parts = substationPointParts(ssLabel, point);
+  const map = ((index[parts.ss] || {})[type]) || {};
+  if(!parts.ss || !parts.bp) return '';
+  const candidates = [
+    parts.bp,
+    `${parts.ss.toUpperCase()}${parts.bp}`,
+    `${parts.ss.toUpperCase()}-${parts.bp}`
+  ].map(normalizeSubstationPdfKey);
+  for(const key of candidates) {
     if(map[key]) return map[key];
   }
   return '';
@@ -2666,7 +2699,8 @@ function parseSubstation(rows, ssLabel) {
       out_loc: cellVal(c[3]),
       rebar:   cellVal(c[4]),
       remark:    cellVal(c[2]) || '',
-      pdf_insp:  cellLink(c[1]) || pdfLink(c[5]),
+      pdf_insp:  cellLink(c[1]) || pdfLink(c[5]) || lookupSubstationPdf(ssLabel, p, 'casing'),
+      pdf_deviate: cellLink(c[2]) || lookupSubstationPdf(ssLabel, p, 'deviate'),
     });
   }
   console.log(`parseSubstation(${ssLabel||'?'}): ${result.length} piles`);
@@ -2873,6 +2907,7 @@ function selectSubstation(ssKey) {
 
   // Reset pagination + search
   if(pageState['sub']) { pageState['sub'].page=1; pageState['sub'].search=''; }
+  delete _renderCache.sub;
   const searchEl = document.getElementById('sub-search');
   if(searchEl) searchEl.value = '';
 
@@ -2900,6 +2935,7 @@ function selectSubstation(ssKey) {
       if(parsed.length > 0) {
         DB[ssKey] = parsed;
         DB.sub = parsed;
+        delete _renderCache.sub;
         renderTable('sub');
         updateSubKPIs();
         console.log(`Auto-fetched ${ssKey}: ${parsed.length} piles`);
@@ -2909,10 +2945,12 @@ function selectSubstation(ssKey) {
       }
     }).catch(e => {
       console.error('Auto-fetch failed:', e);
+      delete _renderCache.sub;
       renderTable('sub');
     });
   } else {
     // Force re-render with existing data
+    delete _renderCache.sub;
     renderTable('sub');
   }
 }
@@ -2933,10 +2971,11 @@ function updateSubKPIs() {
 // Cache last render hash per table to skip unnecessary re-renders
 const _renderCache = {};
 function renderTable(key) {
-  const cacheKey = key + '|' + (pageState[key]?.page||1) + '|' + (pageState[key]?.search||'') + '|' + (pageState[key]?.filter||'');
+  const data = getFiltered(key);
+  const dataSignature = key === 'sub' ? `|${_activeSS}|${data.map(d => d.p).join(',')}` : '';
+  const cacheKey = key + '|' + (pageState[key]?.page||1) + '|' + (pageState[key]?.search||'') + '|' + (pageState[key]?.filter||'') + dataSignature;
   if(_renderCache[key] === cacheKey) return;
   _renderCache[key] = cacheKey;
-  const data = getFiltered(key);
   const s = pageState[key];
   const start=(s.page-1)*s.perPage;
   const paged=data.slice(start,start+s.perPage);
@@ -3064,8 +3103,8 @@ function renderTable(key) {
   } else if(key==='sub'){
     tbody.innerHTML=paged.map(d=>`<tr>
       <td class="mono" style="font-weight:600">${d.p||'—'}</td>
-      <td>${linkedDate(d.date,d.pdf_insp,'Open PDF: Inspection','var(--green)')}</td>
-      <td>${d.deviate?`<span class="mono" style="font-size:0.75rem">${d.deviate}</span>`:'<span class="muted">—</span>'}</td>
+      <td>${linkedDate(d.date,d.pdf_insp,'Open PDF: Casing Inspection','var(--green)')}</td>
+      <td>${linkedDate(d.deviate,d.pdf_deviate,'Open PDF: Pile Deviate','var(--green)')}</td>
       <td style="font-size:0.75rem;color:var(--text2)">${d.out_loc||'<span class="muted">—</span>'}</td>
       <td>${statusBadge(d.rebar||d.remark)}</td>
     </tr>`).join('');

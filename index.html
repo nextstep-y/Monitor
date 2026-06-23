@@ -2303,9 +2303,9 @@ function lookupSubstationPdf(ssLabel, point, type) {
 }
 
 function setStatus(state, msg) {
-  const dot = document.getElementById('status-dot');
-  const lbl = document.getElementById('status-label');
-  if(!dot) return;
+  const dot = document.getElementById('status-dot') || document.getElementById('save-dot');
+  const lbl = document.getElementById('status-label') || document.getElementById('save-label');
+  if(!dot || !lbl) return;
   const colors = { loading:'#f59e0b', ok:'#10b981', error:'#ef4444' };
   dot.style.background = colors[state] || 'var(--text3)';
   lbl.textContent = msg;
@@ -2633,33 +2633,31 @@ async function loadFromSheets() {
     const lt = document.getElementById('loading-text');
     const update = (msg) => { if(lt) lt.textContent = msg; };
 
-    update('Loading Main Line...');
-    const mlRows  = await fetchTabSafe(TAB_NAMES.mainline, 'A:AT');
-
-    update('Loading Angeles Station...');
-    const angRows = await fetchTabSafe(TAB_NAMES.angeles, 'A:L');
-
-    update('Loading Clark Station...');
-    const clRows  = await fetchTabSafe(TAB_NAMES.clark, 'A:L');
-
-    update('Loading Substation SS18...');
-    const subRows18 = await fetchTabSafe(TAB_NAMES.ss18, 'A:F', 15000, TAB_GIDS.ss18);
-    update('Loading Substation SS19...');
-    const subRows19 = await fetchTabSafe(TAB_NAMES.ss19, 'A:F', 15000, TAB_GIDS.ss19);
-    update('Loading Substation SS20...');
-    const subRows20 = await fetchTabSafe(TAB_NAMES.ss20, 'A:F', 15000, TAB_GIDS.ss20);
-    update('Loading Substation SS21...');
-    const subRows21 = await fetchTabSafe(TAB_NAMES.ss21, 'A:F', 15000, TAB_GIDS.ss21);
+    update('Loading sheet tabs...');
+    const [
+      mlRows,
+      angRows,
+      clRows,
+      subRows18,
+      subRows19,
+      subRows20,
+      subRows21,
+      batRows,
+      alRows,
+      cisRows
+    ] = await Promise.all([
+      fetchTabSafe(TAB_NAMES.mainline, 'A:AT'),
+      fetchTabSafe(TAB_NAMES.angeles, 'A:L'),
+      fetchTabSafe(TAB_NAMES.clark, 'A:L'),
+      fetchTabSafe(TAB_NAMES.ss18, 'A:F', 15000, TAB_GIDS.ss18),
+      fetchTabSafe(TAB_NAMES.ss19, 'A:F', 15000, TAB_GIDS.ss19),
+      fetchTabSafe(TAB_NAMES.ss20, 'A:F', 15000, TAB_GIDS.ss20),
+      fetchTabSafe(TAB_NAMES.ss21, 'A:F', 15000, TAB_GIDS.ss21),
+      fetchTabSafe(TAB_NAMES.battery, 'A:M'),
+      fetchTabSafe(TAB_NAMES.align, 'A:Q'),
+      fetchTabSafe(TAB_NAMES.cis, 'A:U')
+    ]);
     const subRows = subRows18;
-
-    update('Loading Battery Post...');
-    const batRows = await fetchTabSafe(TAB_NAMES.battery, 'A:M');
-
-	    update('Loading Final Alignment...');
-	    const alRows  = await fetchTabSafe(TAB_NAMES.align, 'A:Q');
-
-	    update('Loading Cast In-Situ...');
-	    const cisRows = await fetchTabSafe(TAB_NAMES.cis, 'A:Z');
 
 	    const ml  = parseMainline(mlRows);
 	    const ang = parsePiles(angRows, 0, 'angeles', 0);

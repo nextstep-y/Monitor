@@ -1826,7 +1826,7 @@ const TAB_GIDS = {
 	  angeles:  '209101477',    // Angeles Station Piles
 	  clark:    '1366222553',   // Clark Station Piles
 	  align:    '1345613060',   // Final Alignment
-	  cis:      '',             // Cast In-Situ (new tab, loaded by tab name when present)
+	  cis:      '178230623',    // Cast In-Situ
 	};
 
 // Tab names in Google Sheets (must match exactly)
@@ -2199,6 +2199,22 @@ function addCisDoc(row, stageKey, doc) {
   row[key] = work;
 }
 
+function mergeCisFallbackDocs(rows) {
+  const rowMap = new Map(rows.map(row => [`${row.cis || ''}||${row.span || ''}`, row]));
+  getCisIndexRecords().forEach(record => {
+    const cis = record.cis || '';
+    const span = record.span || '';
+    if(!span) return;
+    const row = rowMap.get(`${cis}||${span}`);
+    if(!row) return;
+    const stageKey = cisStageKey(record.stage);
+    const work = row[stageKey] || { docs: [] };
+    const exists = (work.docs || []).some(doc => doc.url && record.url && doc.url === record.url);
+    if(!exists) addCisDoc(row, stageKey, record);
+  });
+  return rows;
+}
+
 function buildCisWideRows(records) {
   const rowsByKey = new Map();
   records.forEach(record => {
@@ -2209,7 +2225,7 @@ function buildCisWideRows(records) {
     if(!rowsByKey.has(key)) rowsByKey.set(key, makeCisWideRow(rowsByKey.size + 1, cis, span));
     addCisDoc(rowsByKey.get(key), cisStageKey(record.stage), record);
   });
-  return [...rowsByKey.values()];
+  return mergeCisFallbackDocs([...rowsByKey.values()]);
 }
 
 DB.cis = buildCisWideRows(getCisIndexRecords());
@@ -2891,7 +2907,7 @@ function parseCis(rows) {
     });
     result.push(row);
   }
-  return result;
+  return mergeCisFallbackDocs(result);
 }
 
 // ── PARSE ANGELES / CLARK ────────────────────────────────────

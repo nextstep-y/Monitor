@@ -671,6 +671,7 @@ body.edit-mode .edit-hint{display:flex;}
             <th rowspan="2">Span No.</th>
             <th rowspan="2">Elastomeric</th>
             <th rowspan="2">Final Alignment</th>
+            <th rowspan="2">Seismic</th>
             <th colspan="2" style="text-align:center;border-bottom:1px solid var(--border);color:var(--accent)">Pre Pour</th>
             <th colspan="2" style="text-align:center;border-bottom:1px solid var(--border);color:var(--green)">Post Pour</th>
             <th rowspan="2">Elasto<br>Status</th>
@@ -2654,7 +2655,7 @@ async function loadFromSheets() {
       fetchTabSafe(TAB_NAMES.ss20, 'A:F', 15000, TAB_GIDS.ss20),
       fetchTabSafe(TAB_NAMES.ss21, 'A:F', 15000, TAB_GIDS.ss21),
       fetchTabSafe(TAB_NAMES.battery, 'A:M'),
-      fetchTabSafe(TAB_NAMES.align, 'A:Q'),
+      fetchTabSafe(TAB_NAMES.align, 'A:S'),
       fetchTabSafe(TAB_NAMES.cis, 'A:U')
     ]);
     const subRows = subRows18;
@@ -3008,7 +3009,8 @@ function parseBattery(rows) {
 function parseAlignment(rows) {
   // Sheet columns:
   // A Span, B Elastomeric, C Final Alignment, D/E Check Form Work,
-  // F/G As-Built, H-K status columns, L-Q PDF/link columns.
+  // F/G As-Built, H-K status columns, L-Q PDF/link columns,
+  // R Seismic date, S Seismic PDF/link.
   const result = [];
   let id = 1;
   for(let i = 0; i < rows.length; i++) {
@@ -3025,6 +3027,7 @@ function parseAlignment(rows) {
       elasto_remark:   '',
       final_align:     cellVal(c[2]),   // Col C : Final Alignment date
       align_remark:    cellVal(c[2]),
+      seismic:         cellVal(c[17]),  // Col R : Seismic date
       pre_upstand:     cellVal(c[3]),   // Col D : CF UPSTAND
       cf_upstand:      cellVal(c[3]),
       pre_ocs:         cellVal(c[4]),   // Col E : CF OCS
@@ -3039,6 +3042,7 @@ function parseAlignment(rows) {
       ocs_status:      cellVal(c[10]),  // Col K : OCS Status
       pdf_elasto:      cellLink(c[1]) || pdfLink(c[11]) || lookupAlignmentPdf(span, 'elasto'),       // Col L or local PDF index
       pdf_final_align: cellLink(c[2]) || pdfLink(c[12]) || lookupAlignmentPdf(span, 'final_align'),  // Col M or local PDF index
+      pdf_seismic:     cellLink(c[17]) || pdfLink(c[18]) || lookupAlignmentPdf(span, 'seismic'),      // Col S or local PDF index
       pdf_pre_upstand: cellLink(c[3]) || pdfLink(c[13]) || lookupAlignmentPdf(span, 'pre_upstand'),  // Col N or local PDF index
       pdf_pre_ocs:     cellLink(c[4]) || pdfLink(c[14]) || lookupAlignmentPdf(span, 'pre_ocs'),
       pdf_post_upstand:cellLink(c[5]) || pdfLink(c[15]) || lookupAlignmentPdf(span, 'post_upstand'),
@@ -3158,8 +3162,8 @@ function getFiltered(key) {
   } else if(key==='battery'){
     if(search) data=data.filter(d=>(d.point||'').toLowerCase().includes(search)||(d.post||'').toLowerCase().includes(search));
   } else if(key==='align'){
-    if(s.filter==='done') data=data.filter(d=>d.final_align||d.elasto);
-    else if(s.filter==='pending') data=data.filter(d=>!d.final_align&&!d.elasto);
+    if(s.filter==='done') data=data.filter(d=>d.final_align||d.elasto||d.seismic||d.pdf_seismic);
+    else if(s.filter==='pending') data=data.filter(d=>!d.final_align&&!d.elasto&&!d.seismic&&!d.pdf_seismic);
     if(search) data=data.filter(d=>(d.pile||'').toLowerCase().includes(search));
   }
   return data;
@@ -3449,6 +3453,7 @@ function renderTable(key) {
         <td class="mono" style="font-weight:600;white-space:nowrap">${d.pile||'—'}</td>
         <td>${linkedDate(d.elasto,d.pdf_elasto,'Open PDF: Elastomeric','var(--green)')}</td>
         <td>${linkedDate(d.final_align,d.pdf_final_align,'Open PDF: Final Alignment','var(--green)')}</td>
+        <td>${linkedDate(d.seismic,d.pdf_seismic,'Open PDF: Seismic','var(--green)')}</td>
         <td>${linkedDate(d.pre_upstand,d.pdf_pre_upstand,'Open PDF: Pre-Pour UPSTAND','var(--green)')}</td>
         <td>${linkedDate(d.pre_ocs,d.pdf_pre_ocs,'Open PDF: Pre-Pour OCS','var(--green)')}</td>
         <td>${linkedDate(d.post_upstand,d.pdf_post_upstand,'Open PDF: Post-Pour UPSTAND','var(--green)')}</td>
@@ -3755,8 +3760,13 @@ function updateOverview(){
   const align_oot   = alignData.filter(d=>d.final_align && isOOT_a(d.align_remark,d.align_status)).length;
   const align_ok    = align_done - align_oot;
   const align_pend  = alTotal - align_done;
+  const seismic_done = alignData.filter(d=>d.seismic || d.pdf_seismic).length;
+  const seismic_ok   = seismic_done;
+  const seismic_oot  = 0;
+  const seismic_pend = alTotal - seismic_done;
   const elasto_pct  = Math.round(elasto_done/alTotal*100);
   const align_pct   = Math.round(align_done/alTotal*100);
+  const seismic_pct = Math.round(seismic_done/alTotal*100);
   // Parapet stats
   const par_preUp_done   = alignData.filter(d=>d.pre_upstand).length;
   const par_preOCS_done  = alignData.filter(d=>d.pre_ocs).length;
@@ -3775,10 +3785,10 @@ function updateOverview(){
   const par_up_ok        = alignData.filter(d=>d.upstand_status && isOK_a('',d.upstand_status)).length;
   const par_ocs_ok       = alignData.filter(d=>d.ocs_status && isOK_a('',d.ocs_status)).length;
   const alignTitleEl = document.getElementById('align-ov-title');
-  if(alignTitleEl) alignTitleEl.textContent = `Final Alignment & Elastomeric — Status Overview (${alTotal} spans)`;
+  if(alignTitleEl) alignTitleEl.textContent = `Alignment Works — Status Overview (${alTotal} spans)`;
   const alignEl = document.getElementById('alignment-overview');
   if(alignEl) alignEl.innerHTML = `
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;">
       <div>
         <div class="chart-card-title" style="margin-bottom:0.8rem">Elastomeric</div>
         <div id="elasto-donut-ov"></div>
@@ -3795,8 +3805,16 @@ function updateOverview(){
           <div class="progress-track"><div class="progress-fill" style="width:${align_pct}%;background:linear-gradient(90deg,var(--gold),#f97316)"></div></div>
         </div>
       </div>
+      <div>
+        <div class="chart-card-title" style="margin-bottom:0.8rem">Seismic</div>
+        <div id="seismic-donut-ov"></div>
+        <div class="progress-container" style="margin-top:0.8rem">
+          <div class="progress-label"><span>Completion</span><span>${seismic_pct}%</span></div>
+          <div class="progress-track"><div class="progress-fill" style="width:${seismic_pct}%;background:linear-gradient(90deg,var(--green),#22c55e)"></div></div>
+        </div>
+      </div>
     </div>
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:1rem">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:6px;margin-top:1rem">
       <div style="background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.2);border-radius:9px;padding:8px;text-align:center">
         <div style="font-family:'Fraunces',serif;font-size:1.3rem;color:var(--accent);font-weight:800">${elasto_done}</div>
         <div style="font-size:0.65rem;color:var(--text3)">Elasto Done</div>
@@ -3808,6 +3826,10 @@ function updateOverview(){
       <div style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);border-radius:9px;padding:8px;text-align:center">
         <div style="font-family:'Fraunces',serif;font-size:1.3rem;color:var(--green);font-weight:800">${align_done}</div>
         <div style="font-size:0.65rem;color:var(--text3)">Align Done</div>
+      </div>
+      <div style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);border-radius:9px;padding:8px;text-align:center">
+        <div style="font-family:'Fraunces',serif;font-size:1.3rem;color:var(--green);font-weight:800">${seismic_done}</div>
+        <div style="font-size:0.65rem;color:var(--text3)">Seismic Done</div>
       </div>
       <div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:9px;padding:8px;text-align:center">
         <div style="font-family:'Fraunces',serif;font-size:1.3rem;color:var(--red);font-weight:800">${align_oot}</div>
@@ -3899,6 +3921,7 @@ function updateOverview(){
 
     makeDonut('elasto-donut-ov',[{l:'OK',v:elasto_ok,c:'#10b981'},{l:'OOT',v:elasto_oot,c:'#ef4444'},{l:'Pending',v:elasto_pend,c:'#64748b'}]);
   makeDonut('align-donut-ov',[{l:'OK',v:align_ok,c:'#10b981'},{l:'OOT',v:align_oot,c:'#ef4444'},{l:'Pending',v:align_pend,c:'#64748b'}]);
+  makeDonut('seismic-donut-ov',[{l:'Done',v:seismic_ok,c:'#10b981'},{l:'OOT',v:seismic_oot,c:'#ef4444'},{l:'Pending',v:seismic_pend,c:'#64748b'}]);
 
   // Build pending alerts
   buildPendingAlerts();

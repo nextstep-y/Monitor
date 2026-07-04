@@ -234,12 +234,11 @@ body.edit-mode .edit-hint{display:flex;}
     </div>
   </div>
   <nav class="header-nav">
-	    <button class="nav-btn active" onclick="showSection('overview',this)">Overview</button>
-	    <button class="nav-btn" onclick="showSection('mainline',this)">Main Line</button>
-	    <button class="nav-btn" onclick="showSection('cis',this)">CIS</button>
-	    <button class="nav-btn" onclick="showSection('stations',this)">Stations</button>
-	    <button class="nav-btn" onclick="showSection('substation',this)">Substation</button>
-	    <button class="nav-btn" onclick="showSection('alignment',this)">Alignment</button>
+    <button class="nav-btn active" onclick="showSection('overview',this)">Overview</button>
+    <button class="nav-btn" onclick="showSection('mainline',this)">Main Line</button>
+    <button class="nav-btn" onclick="showSection('stations',this)">Stations</button>
+    <button class="nav-btn" onclick="showSection('substation',this)">Substation</button>
+    <button class="nav-btn" onclick="showSection('alignment',this)">Alignment</button>
   </nav>
   <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
     <div class="save-indicator"><div class="save-dot" id="save-dot"></div><span id="save-label">Saved</span></div>
@@ -393,60 +392,12 @@ body.edit-mode .edit-hint{display:flex;}
   </div>
 </div>
 
-<!-- ===== CAST IN-SITU ===== -->
-<div id="section-cis" class="section">
-  <div class="section-title"><span class="dot"></span>CIS (Cast In-Situ) Monitoring</div>
-  <div class="table-card">
-    <div class="table-toolbar">
-      <div style="display:flex;gap:8px;align-items:center;">
-        <div class="search-wrap"><input class="search-input" id="cis-search" placeholder="Search CIS, span, stage, WIR..." oninput="pageState['cis'].search=this.value;pageState['cis'].page=1;renderTableDebounced('cis')"></div>
-        <div class="filter-group">
-          <button class="filter-btn active" onclick="setFilter('cis','all',this)">All</button>
-          <button class="filter-btn" onclick="setFilter('cis','CIS40-14',this)">CIS40-14</button>
-          <button class="filter-btn" onclick="setFilter('cis','CIS50-6',this)">CIS50-6</button>
-          <button class="filter-btn" onclick="setFilter('cis','CIS50-8',this)">CIS50-8</button>
-          <button class="filter-btn" onclick="setFilter('cis','CIS60-2',this)">CIS60-2</button>
-        </div>
-      </div>
-      <div style="display:flex;gap:8px;align-items:center;">
-        <span class="table-count" id="cis-count"></span>
-      </div>
-    </div>
-    <div class="overflow-x">
-      <table>
-        <thead><tr>
-          <th style="min-width:88px">CIS</th>
-          <th style="min-width:132px">Span</th>
-          <th style="min-width:120px">Bottom Formwork</th>
-          <th style="min-width:150px">Bottom Slab / Blister / End Wall</th>
-          <th style="min-width:120px">Web / Inner Wall</th>
-          <th style="min-width:120px">Duct Lower</th>
-          <th style="min-width:120px">Top Slab Formwork</th>
-          <th style="min-width:120px">Top Slab As-Built</th>
-          <th style="min-width:130px">Shear Key / Seismic</th>
-          <th style="min-width:110px">Top Drain</th>
-          <th style="min-width:150px">Check Elevation / Load Test</th>
-          <th style="min-width:150px">Remark</th>
-        </tr></thead>
-        <tbody id="cis-tbody"></tbody>
-      </table>
-    </div>
-    <div class="pagination">
-      <button class="page-btn" id="cis-prev" onclick="changePage('cis',-1)">← Prev</button>
-      <span class="page-info" id="cis-page-info"></span>
-      <button class="page-btn" id="cis-next" onclick="changePage('cis',1)">Next →</button>
-    </div>
-  </div>
-</div>
-
 <!-- ===== STATIONS ===== -->
 <div id="section-stations" class="section">
   <div class="section-title"><span class="dot"></span>Station Pile Inspection</div>
   <div class="tabs">
     <button class="tab-btn active" onclick="setStationTab('angeles',this)">Angeles Station</button>
-    <button class="tab-btn" onclick="setStationTab('angeles_sigcom',this)">Angeles Sigcom</button>
     <button class="tab-btn" onclick="setStationTab('clark',this)">Clark Station</button>
-    <button class="tab-btn" onclick="setStationTab('clark_sigcom',this)">Clark Sigcom</button>
     <button class="tab-btn" onclick="setStationTab('battery',this)">Battery Post</button>
   </div>
   
@@ -483,37 +434,6 @@ body.edit-mode .edit-hint{display:flex;}
     </div>
   </div>
 
-  <!-- ANGELES SIGCOM -->
-  <div id="tab-angeles_sigcom" style="display:none">
-    <div class="table-card">
-      <div class="table-toolbar">
-        <div style="display:flex;gap:8px;align-items:center;">
-          <div class="search-wrap"><input class="search-input" id="angeles_sigcom-search" placeholder="Search..." oninput="pageState['angeles_sigcom'].search=this.value;pageState['angeles_sigcom'].page=1;renderTableDebounced('angeles_sigcom')"></div>
-          <div class="filter-group">
-            <button class="filter-btn active" onclick="setFilter('angeles_sigcom','all',this)">All</button>
-            <button class="filter-btn" onclick="setFilter('angeles_sigcom','okay',this)">OK</button>
-            <button class="filter-btn" onclick="setFilter('angeles_sigcom','oot',this)">Out of Tolerance</button>
-            <button class="filter-btn" onclick="setFilter('angeles_sigcom','pending',this)">Pending</button>
-          </div>
-        </div>
-        <div style="display:flex;gap:8px;align-items:center;">
-          <span class="table-count" id="angeles_sigcom-count"></span>
-        </div>
-      </div>
-      <div class="overflow-x">
-        <table>
-          <thead><tr><th style="min-width:110px">Pile No.</th><th style="min-width:140px">Casing Inspection</th><th style="min-width:180px">Pile Deviate</th><th style="min-width:110px">Status</th></tr></thead>
-          <tbody id="angeles_sigcom-tbody"></tbody>
-        </table>
-      </div>
-      <div class="pagination">
-        <button class="page-btn" id="angeles_sigcom-prev" onclick="changePage('angeles_sigcom',-1)">← Prev</button>
-        <span class="page-info" id="angeles_sigcom-page-info"></span>
-        <button class="page-btn" id="angeles_sigcom-next" onclick="changePage('angeles_sigcom',1)">Next →</button>
-      </div>
-    </div>
-  </div>
-
   <!-- CLARK -->
   <div id="tab-clark" style="display:none">
     <div class="table-card">
@@ -541,37 +461,6 @@ body.edit-mode .edit-hint{display:flex;}
         <button class="page-btn" id="clark-prev" onclick="changePage('clark',-1)">← Prev</button>
         <span class="page-info" id="clark-page-info"></span>
         <button class="page-btn" id="clark-next" onclick="changePage('clark',1)">Next →</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- CLARK SIGCOM -->
-  <div id="tab-clark_sigcom" style="display:none">
-    <div class="table-card">
-      <div class="table-toolbar">
-        <div style="display:flex;gap:8px;align-items:center;">
-          <div class="search-wrap"><input class="search-input" id="clark_sigcom-search" placeholder="Search..." oninput="pageState['clark_sigcom'].search=this.value;pageState['clark_sigcom'].page=1;renderTableDebounced('clark_sigcom')"></div>
-          <div class="filter-group">
-            <button class="filter-btn active" onclick="setFilter('clark_sigcom','all',this)">All</button>
-            <button class="filter-btn" onclick="setFilter('clark_sigcom','okay',this)">OK</button>
-            <button class="filter-btn" onclick="setFilter('clark_sigcom','oot',this)">Out of Tolerance</button>
-            <button class="filter-btn" onclick="setFilter('clark_sigcom','pending',this)">Pending</button>
-          </div>
-        </div>
-        <div style="display:flex;gap:8px;align-items:center;">
-          <span class="table-count" id="clark_sigcom-count"></span>
-        </div>
-      </div>
-      <div class="overflow-x">
-        <table>
-          <thead><tr><th style="min-width:110px">Pile No.</th><th style="min-width:140px">Casing Inspection</th><th style="min-width:180px">Pile Deviate</th><th style="min-width:110px">Status</th></tr></thead>
-          <tbody id="clark_sigcom-tbody"></tbody>
-        </table>
-      </div>
-      <div class="pagination">
-        <button class="page-btn" id="clark_sigcom-prev" onclick="changePage('clark_sigcom',-1)">← Prev</button>
-        <span class="page-info" id="clark_sigcom-page-info"></span>
-        <button class="page-btn" id="clark_sigcom-next" onclick="changePage('clark_sigcom',1)">Next →</button>
       </div>
     </div>
   </div>
@@ -671,7 +560,6 @@ body.edit-mode .edit-hint{display:flex;}
             <th rowspan="2">Span No.</th>
             <th rowspan="2">Elastomeric</th>
             <th rowspan="2">Final Alignment</th>
-            <th rowspan="2">Seismic</th>
             <th colspan="2" style="text-align:center;border-bottom:1px solid var(--border);color:var(--accent)">Pre Pour</th>
             <th colspan="2" style="text-align:center;border-bottom:1px solid var(--border);color:var(--green)">Post Pour</th>
             <th rowspan="2">Elasto<br>Status</th>
@@ -1663,11 +1551,8 @@ if (typeof window !== 'undefined') {
   window.MAINLINE_PDF_INDEX = MAINLINE_PDF_INDEX;
 }
 </script>
-<script src="./bored-pile-pdf-index.js?v=737049578f86"></script>
-<script src="./cis-pdf-index.js?v=9aba3ed086a5"></script>
-<script src="./station-pdf-index.js?v=c6c347cb433f"></script>
-<script src="./substation-pdf-index.js?v=28d4b1bbcb26"></script>
-<script src="./alignment-pdf-index.js?v=a741ae10cd4a"></script>
+<script src="./bored-pile-pdf-index.js?v=20260704-casing-links"></script>
+<script src="./station-pdf-index.js"></script>
 <script>
 // ============================================================
 // DEFAULT DATA
@@ -1799,14 +1684,11 @@ const DEFAULT = {
 // ============================================================
 let DB = JSON.parse(JSON.stringify(DEFAULT));
 DB.ss18 = []; DB.ss19 = []; DB.ss20 = []; DB.ss21 = [];
-DB.angeles_sigcom = [];
-DB.clark_sigcom = [];
-DB.cis = [];
 let editMode = false;
-let nextId = { angeles:200, angeles_sigcom:100, clark:100, clark_sigcom:100, sub:100, mainline:100, cis:100, battery:100, align:100 };
+let nextId = { angeles:200, clark:100, sub:100, mainline:100, battery:100, align:100 };
 
 const pageState = {};
-['angeles','angeles_sigcom','clark','clark_sigcom','sub','ss18','ss19','ss20','ss21','mainline','cis','battery','align'].forEach(k=>{
+['angeles','clark','sub','ss18','ss19','ss20','ss21','mainline','battery','align'].forEach(k=>{
   pageState[k]={page:1,perPage:20,filter:'all',search:''};
 });
 pageState.mainline.perPage=15;
@@ -1824,12 +1706,11 @@ const TAB_GIDS = {
   ss19:     '701289398',    // Substation 19
   ss20:     '564054978',    // Substation 20
   ss21:     '2069252308',   // Substation 21
-	  battery:  '513271788',    // Battery Post
-	  angeles:  '209101477',    // Angeles Station Piles
-	  clark:    '1366222553',   // Clark Station Piles
-	  align:    '1345613060',   // Final Alignment
-	  cis:      '178230623',    // Cast In-Situ
-	};
+  battery:  '513271788',    // Battery Post
+  angeles:  '209101477',    // Angeles Station Piles
+  clark:    '1366222553',   // Clark Station Piles
+  align:    '1345613060',   // Final Alignment
+};
 
 // Tab names in Google Sheets (must match exactly)
 const TAB_NAMES = {
@@ -1841,10 +1722,9 @@ const TAB_NAMES = {
   ss19:      'Substation 19',
   ss20:      'Substation 20',
   ss21:      'Substation 21',
-	  battery:   'Battery Post',
-	  align:     'Final Alignment',
-	  cis:       'Cast In-Situ',
-	};
+  battery:   'Battery Post',
+  align:     'Final Alignment',
+};
 
 // Google Sheets public gviz can lag behind authenticated Sheets data for some
 // recently edited As-Built cells. Keep these current values aligned with the
@@ -2095,143 +1975,6 @@ function lookupMainlinePilePdf(pier, pileNo) {
   return suffixMatch ? files[suffixMatch] : '';
 }
 
-function getCisIndexRecords() {
-  const index =
-    (typeof window !== 'undefined' && window.CIS_PDF_INDEX) ||
-    ((typeof CIS_PDF_INDEX !== 'undefined') ? CIS_PDF_INDEX : {});
-  return Array.isArray(index.records) ? index.records : [];
-}
-
-const CIS_STAGE_COLUMNS = [
-  {
-    key: 'bottom_formwork',
-    label: 'Bottom Formwork',
-    aliases: ['bottom formwork', 'bottom formworks', 'bottom soffit formwork', 'bottom of soffit formwork']
-  },
-  {
-    key: 'bottom_slab',
-    label: 'Bottom Slab / Blister / End Wall',
-    aliases: ['bottom slab / blister / end wall', 'bottom slab', 'blister', 'end wall', 'bottom slab as-built', 'bottom slab as built', 'bottom slab formwork']
-  },
-  {
-    key: 'web_inner',
-    label: 'Web / Inner Wall',
-    aliases: ['web / inner wall', 'web', 'inner wall', 'webs and inner walls', 'web, end wall & blister']
-  },
-  {
-    key: 'duct_lower',
-    label: 'Duct Lower',
-    aliases: ['duct lower', 'duct lower formwork', 'duct lower as-built', 'duct lower as built']
-  },
-  {
-    key: 'top_slab_formwork',
-    label: 'Top Slab Formwork',
-    aliases: ['top slab formwork', 'top slab formworks', 'formwork top slab', 'formworks inspection for top slab']
-  },
-  {
-    key: 'top_slab_asbuilt',
-    label: 'Top Slab As-Built',
-    aliases: ['top slab as-built', 'top slab as built', 'as-built top slab', 'as built top slab']
-  },
-  {
-    key: 'shear_key',
-    label: 'Shear Key / Seismic',
-    aliases: ['shear key / seismic', 'shear key', 'seismic', 'seismic restrainer']
-  },
-  {
-    key: 'top_drain',
-    label: 'Top Drain',
-    aliases: ['top drain', 'top drain as-built', 'top drain as built']
-  },
-  {
-    key: 'check_elevation',
-    label: 'Check Elevation / Load Test',
-    aliases: ['check elevation', 'load test', 'before load test', 'after unload', 'loading']
-  },
-  {
-    key: 'other',
-    label: 'Other',
-    aliases: ['other']
-  }
-];
-
-const CIS_STAGE_BY_KEY = Object.fromEntries(CIS_STAGE_COLUMNS.map(stage => [stage.key, stage]));
-
-function normalizeCisHeader(value) {
-  return String(value || '').toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]+/g, ' ').trim();
-}
-
-function cisStageKey(stage) {
-  const normalized = normalizeCisHeader(stage);
-  if(!normalized) return 'other';
-  for(const column of CIS_STAGE_COLUMNS) {
-    if(column.aliases.some(alias => {
-      const normalizedAlias = normalizeCisHeader(alias);
-      return normalized === normalizedAlias || normalized.includes(normalizedAlias) || normalizedAlias.includes(normalized);
-    })) return column.key;
-  }
-  return 'other';
-}
-
-function makeCisWideRow(id, cis, span) {
-  const row = { id, cis, span, remark: '' };
-  CIS_STAGE_COLUMNS.forEach(stage => {
-    row[stage.key] = { date: '', url: '', file: '', wir: '', docs: [] };
-  });
-  return row;
-}
-
-function addCisDoc(row, stageKey, doc) {
-  const key = CIS_STAGE_BY_KEY[stageKey] ? stageKey : 'other';
-  const work = row[key] || { date: '', url: '', file: '', wir: '', docs: [] };
-  const normalizedDoc = {
-    date: doc.date || '',
-    url: doc.url || '',
-    file: doc.file || '',
-    wir: doc.wir || '',
-    folder: doc.folder || '',
-    stage: doc.stage || CIS_STAGE_BY_KEY[key].label
-  };
-  work.docs = work.docs || [];
-  work.docs.push(normalizedDoc);
-  if(!work.date && normalizedDoc.date) work.date = normalizedDoc.date;
-  if(!work.url && normalizedDoc.url) work.url = normalizedDoc.url;
-  if(!work.file && normalizedDoc.file) work.file = normalizedDoc.file;
-  if(!work.wir && normalizedDoc.wir) work.wir = normalizedDoc.wir;
-  row[key] = work;
-}
-
-function mergeCisFallbackDocs(rows) {
-  const rowMap = new Map(rows.map(row => [`${row.cis || ''}||${row.span || ''}`, row]));
-  getCisIndexRecords().forEach(record => {
-    const cis = record.cis || '';
-    const span = record.span || '';
-    if(!span) return;
-    const row = rowMap.get(`${cis}||${span}`);
-    if(!row) return;
-    const stageKey = cisStageKey(record.stage);
-    const work = row[stageKey] || { docs: [] };
-    const exists = (work.docs || []).some(doc => doc.url && record.url && doc.url === record.url);
-    if(!exists) addCisDoc(row, stageKey, record);
-  });
-  return rows;
-}
-
-function buildCisWideRows(records) {
-  const rowsByKey = new Map();
-  records.forEach(record => {
-    const cis = record.cis || '';
-    const span = record.span || '';
-    if(!span) return;
-    const key = `${cis}||${span}`;
-    if(!rowsByKey.has(key)) rowsByKey.set(key, makeCisWideRow(rowsByKey.size + 1, cis, span));
-    addCisDoc(rowsByKey.get(key), cisStageKey(record.stage), record);
-  });
-  return mergeCisFallbackDocs([...rowsByKey.values()]);
-}
-
-DB.cis = buildCisWideRows(getCisIndexRecords());
-
 function normalizeStationPdfKey(value) {
   return String(value || '').toUpperCase().replace(/[^A-Z0-9]+/g, '');
 }
@@ -2272,42 +2015,10 @@ function lookupStationPdf(section, point, type, post='') {
   return '';
 }
 
-function normalizeSubstationPdfKey(value) {
-  return String(value || '').toUpperCase().replace(/[^A-Z0-9]+/g, '');
-}
-
-function substationPointParts(ssLabel, point) {
-  const raw = String(point || '').toUpperCase();
-  const ssMatch = raw.match(/SS\s*(18|19|20|21)/) || String(ssLabel || '').toUpperCase().match(/SS\s*(18|19|20|21)/);
-  const bpMatch = raw.match(/BP\s*-?\s*(\d{1,2})/) || raw.match(/#\s*(\d{1,2})/);
-  return {
-    ss: ssMatch ? `ss${ssMatch[1]}` : '',
-    bp: bpMatch ? `BP${parseInt(bpMatch[1], 10)}` : ''
-  };
-}
-
-function lookupSubstationPdf(ssLabel, point, type) {
-  const index =
-    (typeof window !== 'undefined' && window.SUBSTATION_PDF_INDEX) ||
-    ((typeof SUBSTATION_PDF_INDEX !== 'undefined') ? SUBSTATION_PDF_INDEX : {});
-  const parts = substationPointParts(ssLabel, point);
-  const map = ((index[parts.ss] || {})[type]) || {};
-  if(!parts.ss || !parts.bp) return '';
-  const candidates = [
-    parts.bp,
-    `${parts.ss.toUpperCase()}${parts.bp}`,
-    `${parts.ss.toUpperCase()}-${parts.bp}`
-  ].map(normalizeSubstationPdfKey);
-  for(const key of candidates) {
-    if(map[key]) return map[key];
-  }
-  return '';
-}
-
 function setStatus(state, msg) {
-  const dot = document.getElementById('status-dot') || document.getElementById('save-dot');
-  const lbl = document.getElementById('status-label') || document.getElementById('save-label');
-  if(!dot || !lbl) return;
+  const dot = document.getElementById('status-dot');
+  const lbl = document.getElementById('status-label');
+  if(!dot) return;
   const colors = { loading:'#f59e0b', ok:'#10b981', error:'#ef4444' };
   dot.style.background = colors[state] || 'var(--text3)';
   lbl.textContent = msg;
@@ -2635,60 +2346,51 @@ async function loadFromSheets() {
     const lt = document.getElementById('loading-text');
     const update = (msg) => { if(lt) lt.textContent = msg; };
 
-    update('Loading sheet tabs...');
-    const [
-      mlRows,
-      angRows,
-      clRows,
-      subRows18,
-      subRows19,
-      subRows20,
-      subRows21,
-      batRows,
-      alRows,
-      cisRows
-    ] = await Promise.all([
-      fetchTabSafe(TAB_NAMES.mainline, 'A:AT'),
-      fetchTabSafe(TAB_NAMES.angeles, 'A:L'),
-      fetchTabSafe(TAB_NAMES.clark, 'A:L'),
-      fetchTabSafe(TAB_NAMES.ss18, 'A:F', 15000, TAB_GIDS.ss18),
-      fetchTabSafe(TAB_NAMES.ss19, 'A:F', 15000, TAB_GIDS.ss19),
-      fetchTabSafe(TAB_NAMES.ss20, 'A:F', 15000, TAB_GIDS.ss20),
-      fetchTabSafe(TAB_NAMES.ss21, 'A:F', 15000, TAB_GIDS.ss21),
-      fetchTabSafe(TAB_NAMES.battery, 'A:M'),
-      fetchTabSafe(TAB_NAMES.align, 'A:S'),
-      fetchTabSafe(TAB_NAMES.cis, 'A:U')
-    ]);
+    update('Loading Main Line...');
+    const mlRows  = await fetchTabSafe(TAB_NAMES.mainline, 'A:AT');
+
+    update('Loading Angeles Station...');
+    const angRows = await fetchTabSafe(TAB_NAMES.angeles, 'A:F');
+
+    update('Loading Clark Station...');
+    const clRows  = await fetchTabSafe(TAB_NAMES.clark, 'A:F');
+
+    update('Loading Substation SS18...');
+    const subRows18 = await fetchTabSafe(TAB_NAMES.ss18, 'A:F', 15000, TAB_GIDS.ss18);
+    update('Loading Substation SS19...');
+    const subRows19 = await fetchTabSafe(TAB_NAMES.ss19, 'A:F', 15000, TAB_GIDS.ss19);
+    update('Loading Substation SS20...');
+    const subRows20 = await fetchTabSafe(TAB_NAMES.ss20, 'A:F', 15000, TAB_GIDS.ss20);
+    update('Loading Substation SS21...');
+    const subRows21 = await fetchTabSafe(TAB_NAMES.ss21, 'A:F', 15000, TAB_GIDS.ss21);
     const subRows = subRows18;
 
-	    const ml  = parseMainline(mlRows);
-	    const ang = parsePiles(angRows, 0, 'angeles', 0);
-    const angSig = parsePiles(angRows, 0, 'angeles_sigcom', 4);
-    const cl  = parsePiles(clRows, 0, 'clark', 0);
-    const clSig = parsePiles(clRows, 0, 'clark_sigcom', 4);
+    update('Loading Battery Post...');
+    const batRows = await fetchTabSafe(TAB_NAMES.battery, 'A:M');
+
+    update('Loading Final Alignment...');
+    const alRows  = await fetchTabSafe(TAB_NAMES.align, 'A:Q');
+
+    const ml  = parseMainline(mlRows);
+    const ang = parsePiles(angRows, 0, 'angeles');
+    const cl  = parsePiles(clRows, 0, 'clark');
     const sub  = parseSubstation(subRows18);
     const s18  = parseSubstation(subRows18, 'SS18');
     const s19  = parseSubstation(subRows19, 'SS19');
     const s20  = parseSubstation(subRows20, 'SS20');
     const s21  = parseSubstation(subRows21, 'SS21');
-	    const bat = parseBattery(batRows);
-	    const al  = parseAlignment(alRows);
-	    const cis = parseCis(cisRows);
+    const bat = parseBattery(batRows);
+    const al  = parseAlignment(alRows);
 
-	    console.log('Parsed — mainline:', ml.length, 'angeles:', ang.length,
-	      'angeles_sigcom:', angSig.length, 'clark:', cl.length, 'clark_sigcom:', clSig.length,
-	      'ss18:', s18.length, 'ss19:', s19.length,
-	      'ss20:', s20.length, 'ss21:', s21.length, 'bat:', bat.length, 'align:', al.length,
-	      'cis:', cis.length);
+    console.log('Parsed — mainline:', ml.length, 'angeles:', ang.length,
+      'clark:', cl.length, 'ss18:', s18.length, 'ss19:', s19.length,
+      'ss20:', s20.length, 'ss21:', s21.length, 'bat:', bat.length, 'align:', al.length);
 
     if(ml.length  > 0) DB.mainline = ml;
     if(ang.length > 0) DB.angeles  = ang;
-    if(angSig.length > 0) DB.angeles_sigcom = angSig;
     if(cl.length  > 0) DB.clark    = cl;
-    if(clSig.length > 0) DB.clark_sigcom = clSig;
-	    if(bat.length > 0) DB.battery  = bat;
-	    if(al.length  > 0) DB.align    = al;
-	    if(cis.length > 0) DB.cis      = cis;
+    if(bat.length > 0) DB.battery  = bat;
+    if(al.length  > 0) DB.align    = al;
 
     // Assign each substation individually
     if(s18.length > 0) DB.ss18 = s18;
@@ -2837,86 +2539,13 @@ function parseMainline(rows) {
   return result;
 }
 
-// ── PARSE CAST IN-SITU ──────────────────────────────────────────
-function parseCis(rows) {
-  const headerIndex = rows.findIndex(row => {
-    const c = row.c || [];
-    return cellVal(c[0]).toLowerCase() === 'cis' &&
-      cellVal(c[1]).toLowerCase() === 'span';
-  });
-  if(headerIndex < 0) return [];
-  const headers = (rows[headerIndex].c || []).map(cell => cellVal(cell));
-  const normalizedHeaders = headers.map(normalizeCisHeader);
-
-  const legacyStageIndex = normalizedHeaders.indexOf('stage');
-  if(legacyStageIndex >= 0) {
-    const records = [];
-    for(let i = headerIndex + 1; i < rows.length; i++) {
-      const c = rows[i].c || [];
-      const cis = cellVal(c[0]);
-      const span = cellVal(c[1]);
-      const stage = cellVal(c[2]);
-      const date = cellVal(c[3]);
-      const wir = cellVal(c[4]);
-      const file = cellVal(c[5]);
-      const url = cellLink(c[3]) || cellLink(c[5]) || cellLink(c[6]) || pdfLink(c[6]) || cellVal(c[6]);
-      const folder = cellVal(c[7]);
-      if(!cis && !span && !stage && !file) continue;
-      records.push({ cis, span, stage, date, wir, file, url, folder });
-    }
-    return buildCisWideRows(records);
-  }
-
-  const stageColumnMap = {};
-  CIS_STAGE_COLUMNS.forEach(stage => {
-    const aliases = [stage.label, ...stage.aliases].map(normalizeCisHeader);
-    const dateIndex = normalizedHeaders.findIndex(header =>
-      aliases.some(alias => header === alias || header.includes(alias)) &&
-      !header.includes('pdf') &&
-      !header.includes('link') &&
-      !header.includes('file')
-    );
-    const linkIndex = normalizedHeaders.findIndex(header =>
-      aliases.some(alias => header.includes(alias)) &&
-      (header.includes('pdf') || header.includes('link') || header.includes('file'))
-    );
-    if(dateIndex >= 0 || linkIndex >= 0) stageColumnMap[stage.key] = { dateIndex, linkIndex };
-  });
-
-  const remarkIndex = normalizedHeaders.findIndex(header => header === 'remark' || header === 'remarks' || header.includes('remark'));
-  const result = [];
-  for(let i = headerIndex + 1; i < rows.length; i++) {
-    const c = rows[i].c || [];
-    const cis = cellVal(c[0]);
-    const span = cellVal(c[1]);
-    if(!cis && !span) continue;
-    const row = makeCisWideRow(result.length + 1, cis, span);
-    if(remarkIndex >= 0) row.remark = cellVal(c[remarkIndex]);
-    Object.entries(stageColumnMap).forEach(([stageKey, indexes]) => {
-      const dateCell = indexes.dateIndex >= 0 ? c[indexes.dateIndex] : null;
-      const linkCell = indexes.linkIndex >= 0 ? c[indexes.linkIndex] : null;
-      const date = cellVal(dateCell);
-      const url = cellLink(dateCell) || cellLink(linkCell) || pdfLink(linkCell) || cellVal(linkCell);
-      if(!date && !url) return;
-      addCisDoc(row, stageKey, {
-        date,
-        url,
-        file: cellVal(linkCell),
-        stage: CIS_STAGE_BY_KEY[stageKey].label
-      });
-    });
-    result.push(row);
-  }
-  return mergeCisFallbackDocs(result);
-}
-
 // ── PARSE ANGELES / CLARK ────────────────────────────────────
-function parsePiles(rows, startRow=0, stationKey='', colOffset=0) {
+function parsePiles(rows, startRow=0, stationKey='') {
   const result = [];
   let id = 1;
   for(let i = startRow; i < rows.length; i++) {
     const c = rows[i].c || [];
-    const p = cellVal(c[colOffset]);
+    const p = cellVal(c[0]);
     if(!p) continue;
     const pLow = p.toLowerCase();
     // Skip digit-only rows (totals/numbering)
@@ -2934,11 +2563,11 @@ function parsePiles(rows, startRow=0, stationKey='', colOffset=0) {
     if((pLow.includes('station') || pLow.includes(' piles')) && !p.includes('BP') && !p.includes('-')) continue;
     result.push({
       id: id++, p,
-      casing:      cellVal(c[colOffset + 1]),
-      deviate:     cellVal(c[colOffset + 2]),
-      remark:      cellVal(c[colOffset + 3]),
-      pdf_casing:  cellLink(c[colOffset + 1]) || lookupStationPdf(stationKey, p, 'casing'),
-      pdf_deviate: cellLink(c[colOffset + 2]) || lookupStationPdf(stationKey, p, 'deviate'),
+      casing:      cellVal(c[1]),
+      deviate:     cellVal(c[2]),
+      remark:      cellVal(c[3]),
+      pdf_casing:  cellLink(c[1]) || pdfLink(c[4]) || lookupStationPdf(stationKey, p, 'casing'),
+      pdf_deviate: cellLink(c[2]) || pdfLink(c[5]) || lookupStationPdf(stationKey, p, 'deviate'),
     });
   }
   return result;
@@ -2966,8 +2595,7 @@ function parseSubstation(rows, ssLabel) {
       out_loc: cellVal(c[3]),
       rebar:   cellVal(c[4]),
       remark:    cellVal(c[2]) || '',
-      pdf_insp:  cellLink(c[1]) || pdfLink(c[5]) || lookupSubstationPdf(ssLabel, p, 'casing'),
-      pdf_deviate: cellLink(c[2]) || lookupSubstationPdf(ssLabel, p, 'deviate'),
+      pdf_insp:  cellLink(c[1]) || pdfLink(c[5]),
     });
   }
   console.log(`parseSubstation(${ssLabel||'?'}): ${result.length} piles`);
@@ -3010,8 +2638,7 @@ function parseBattery(rows) {
 function parseAlignment(rows) {
   // Sheet columns:
   // A Span, B Elastomeric, C Final Alignment, D/E Check Form Work,
-  // F/G As-Built, H-K status columns, L-Q PDF/link columns,
-  // R Seismic date, S Seismic PDF/link.
+  // F/G As-Built, H-K status columns, L-Q PDF/link columns.
   const result = [];
   let id = 1;
   for(let i = 0; i < rows.length; i++) {
@@ -3028,7 +2655,6 @@ function parseAlignment(rows) {
       elasto_remark:   '',
       final_align:     cellVal(c[2]),   // Col C : Final Alignment date
       align_remark:    cellVal(c[2]),
-      seismic:         cellVal(c[17]),  // Col R : Seismic date
       pre_upstand:     cellVal(c[3]),   // Col D : CF UPSTAND
       cf_upstand:      cellVal(c[3]),
       pre_ocs:         cellVal(c[4]),   // Col E : CF OCS
@@ -3043,7 +2669,6 @@ function parseAlignment(rows) {
       ocs_status:      cellVal(c[10]),  // Col K : OCS Status
       pdf_elasto:      cellLink(c[1]) || pdfLink(c[11]) || lookupAlignmentPdf(span, 'elasto'),       // Col L or local PDF index
       pdf_final_align: cellLink(c[2]) || pdfLink(c[12]) || lookupAlignmentPdf(span, 'final_align'),  // Col M or local PDF index
-      pdf_seismic:     cellLink(c[17]) || pdfLink(c[18]) || lookupAlignmentPdf(span, 'seismic'),      // Col S or local PDF index
       pdf_pre_upstand: cellLink(c[3]) || pdfLink(c[13]) || lookupAlignmentPdf(span, 'pre_upstand'),  // Col N or local PDF index
       pdf_pre_ocs:     cellLink(c[4]) || pdfLink(c[14]) || lookupAlignmentPdf(span, 'pre_ocs'),
       pdf_post_upstand:cellLink(c[5]) || pdfLink(c[15]) || lookupAlignmentPdf(span, 'post_upstand'),
@@ -3136,35 +2761,21 @@ function getFiltered(key) {
   const s = pageState[key];
   const search = (s.search||'').toLowerCase();
 
-  if(key==='angeles'||key==='angeles_sigcom'||key==='clark'||key==='clark_sigcom'){
+  if(key==='angeles'||key==='clark'){
     if(s.filter==='okay') data=data.filter(d=>getStatus(d.remark)==='ok');
     else if(s.filter==='oot') data=data.filter(d=>getStatus(d.remark)==='oot');
     else if(s.filter==='pending') data=data.filter(d=>!d.deviate);
     if(search) data=data.filter(d=>(d.p||'').toLowerCase().includes(search)||(d.remark||'').toLowerCase().includes(search));
-	  } else if(key==='mainline'){
-	    if(s.filter!=='all') data=data.filter(d=>(d.cfg||'').includes(s.filter));
-	    if(search) data=data.filter(d=>(d.pier||'').toLowerCase().includes(search));
-	  } else if(key==='cis'){
-	    if(s.filter!=='all') data=data.filter(d=>(d.cis||'')===s.filter);
-	    if(search) {
-	      data=data.filter(d=>{
-	        const docText = CIS_STAGE_COLUMNS.flatMap(stage => {
-	          const work = d[stage.key] || {};
-	          return [stage.label, work.date, work.wir, work.file, ...(work.docs || []).flatMap(doc => [doc.stage, doc.date, doc.wir, doc.file, doc.folder])];
-	        }).join(' ').toLowerCase();
-	        return (d.cis||'').toLowerCase().includes(search) ||
-	          (d.span||'').toLowerCase().includes(search) ||
-	          (d.remark||'').toLowerCase().includes(search) ||
-	          docText.includes(search);
-	      });
-	    }
-	  } else if(key==='sub'){
-	    if(search) data=data.filter(d=>(d.p||'').toLowerCase().includes(search));
+  } else if(key==='mainline'){
+    if(s.filter!=='all') data=data.filter(d=>(d.cfg||'').includes(s.filter));
+    if(search) data=data.filter(d=>(d.pier||'').toLowerCase().includes(search));
+  } else if(key==='sub'){
+    if(search) data=data.filter(d=>(d.p||'').toLowerCase().includes(search));
   } else if(key==='battery'){
     if(search) data=data.filter(d=>(d.point||'').toLowerCase().includes(search)||(d.post||'').toLowerCase().includes(search));
   } else if(key==='align'){
-    if(s.filter==='done') data=data.filter(d=>d.final_align||d.elasto||d.seismic||d.pdf_seismic);
-    else if(s.filter==='pending') data=data.filter(d=>!d.final_align&&!d.elasto&&!d.seismic&&!d.pdf_seismic);
+    if(s.filter==='done') data=data.filter(d=>d.final_align||d.elasto);
+    else if(s.filter==='pending') data=data.filter(d=>!d.final_align&&!d.elasto);
     if(search) data=data.filter(d=>(d.pile||'').toLowerCase().includes(search));
   }
   return data;
@@ -3191,7 +2802,6 @@ function selectSubstation(ssKey) {
 
   // Reset pagination + search
   if(pageState['sub']) { pageState['sub'].page=1; pageState['sub'].search=''; }
-  delete _renderCache.sub;
   const searchEl = document.getElementById('sub-search');
   if(searchEl) searchEl.value = '';
 
@@ -3219,7 +2829,6 @@ function selectSubstation(ssKey) {
       if(parsed.length > 0) {
         DB[ssKey] = parsed;
         DB.sub = parsed;
-        delete _renderCache.sub;
         renderTable('sub');
         updateSubKPIs();
         console.log(`Auto-fetched ${ssKey}: ${parsed.length} piles`);
@@ -3229,12 +2838,10 @@ function selectSubstation(ssKey) {
       }
     }).catch(e => {
       console.error('Auto-fetch failed:', e);
-      delete _renderCache.sub;
       renderTable('sub');
     });
   } else {
     // Force re-render with existing data
-    delete _renderCache.sub;
     renderTable('sub');
   }
 }
@@ -3255,11 +2862,10 @@ function updateSubKPIs() {
 // Cache last render hash per table to skip unnecessary re-renders
 const _renderCache = {};
 function renderTable(key) {
-  const data = getFiltered(key);
-  const dataSignature = key === 'sub' ? `|${_activeSS}|${data.map(d => d.p).join(',')}` : '';
-  const cacheKey = key + '|' + (pageState[key]?.page||1) + '|' + (pageState[key]?.search||'') + '|' + (pageState[key]?.filter||'') + dataSignature;
+  const cacheKey = key + '|' + (pageState[key]?.page||1) + '|' + (pageState[key]?.search||'') + '|' + (pageState[key]?.filter||'');
   if(_renderCache[key] === cacheKey) return;
   _renderCache[key] = cacheKey;
+  const data = getFiltered(key);
   const s = pageState[key];
   const start=(s.page-1)*s.perPage;
   const paged=data.slice(start,start+s.perPage);
@@ -3276,7 +2882,7 @@ function renderTable(key) {
   if(!tbody) return;
   if(!paged.length){tbody.innerHTML=`<tr><td colspan="14" style="text-align:center;padding:2rem;color:var(--text3)">No data found</td></tr>`;return;}
 
-  if(key==='angeles'||key==='angeles_sigcom'||key==='clark'||key==='clark_sigcom'){
+  if(key==='angeles'||key==='clark'){
     tbody.innerHTML=paged.map(d=>`<tr>
       <td class="mono editable" style="font-weight:600;white-space:nowrap">${d.p||'—'}</td>
       <td style="cursor:default">${stationWorkCell(d.casing,d.pdf_casing,'Casing Inspection')}</td>
@@ -3381,54 +2987,14 @@ function renderTable(key) {
       <td>${datePdfCell(d.ph_postpour,d.pdf_ph_post,'Pier Head Post-Pour','var(--green)')}</td>
       <td>${remarkBadge(d.ph_remark)}</td>
       <td>${datePdfCell(d.br_prepour,d.pdf_br_pre,'Bearing Plinths Pre-Pour','var(--text2)')}</td>
-	      <td>${datePdfCell(d.br_postpour,d.pdf_br_post,'Bearing Plinths Post-Pour','var(--green)')}</td>
-	      <td>${remarkBadge(d.br_remark)}</td>
-	    </tr>`).join('');
-	  } else if(key==='cis'){
-	    function cisWorkCell(work, title) {
-	      const docs = (work && Array.isArray(work.docs)) ? work.docs : [];
-	      const primary = docs.find(doc => doc.date || doc.url) || work || {};
-	      if(!primary.date && !primary.url && !docs.length) return '<span class="muted">—</span>';
-	      const label = primary.date || (primary.wir ? `WIR ${primary.wir}` : 'PDF');
-	      const href = firstSheetLink(primary.url);
-	      const main = href ?
-	        buildPdfAnchor(href, `${escapeHtml(label)} 📄`, `Open PDF: ${title}`, 'var(--green)') :
-	        `<span class="mono" style="font-size:0.75rem;color:var(--green)">${escapeHtml(label)}</span>`;
-	      const meta = [];
-	      if(primary.wir) meta.push(`WIR ${escapeHtml(primary.wir)}`);
-	      if(docs.length > 1) meta.push(`+${docs.length - 1} PDF`);
-	      const docLinks = docs.slice(1, 4).map((doc, index) => {
-	        const docHref = firstSheetLink(doc.url);
-	        if(!docHref) return '';
-	        return buildPdfAnchor(docHref, `#${index + 2}`, `Open PDF: ${doc.file || title}`, 'var(--text2)');
-	      }).filter(Boolean).join(' ');
-	      return `<div style="display:flex;flex-direction:column;gap:3px;min-width:110px">
-	        <div>${main}</div>
-	        ${meta.length ? `<div style="font-size:0.65rem;color:var(--text3)">${meta.join(' · ')}</div>` : ''}
-	        ${docLinks ? `<div style="display:flex;gap:4px;flex-wrap:wrap">${docLinks}</div>` : ''}
-	      </div>`;
-	    }
-	    tbody.innerHTML=paged.map(d=>{
-	      return `<tr>
-	        <td class="mono" style="font-weight:600;white-space:nowrap">${escapeHtml(d.cis||'—')}</td>
-	        <td class="mono" style="white-space:nowrap">${escapeHtml(d.span||'—')}</td>
-	        <td>${cisWorkCell(d.bottom_formwork, 'Bottom Formwork')}</td>
-	        <td>${cisWorkCell(d.bottom_slab, 'Bottom Slab / Blister / End Wall')}</td>
-	        <td>${cisWorkCell(d.web_inner, 'Web / Inner Wall')}</td>
-	        <td>${cisWorkCell(d.duct_lower, 'Duct Lower')}</td>
-	        <td>${cisWorkCell(d.top_slab_formwork, 'Top Slab Formwork')}</td>
-	        <td>${cisWorkCell(d.top_slab_asbuilt, 'Top Slab As-Built')}</td>
-	        <td>${cisWorkCell(d.shear_key, 'Shear Key / Seismic')}</td>
-	        <td>${cisWorkCell(d.top_drain, 'Top Drain')}</td>
-	        <td>${cisWorkCell(d.check_elevation, 'Check Elevation / Load Test')}</td>
-	        <td style="font-size:0.72rem;color:var(--text2)">${escapeHtml(d.remark||'')}</td>
-	      </tr>`;
-	    }).join('');
-	  } else if(key==='sub'){
-	    tbody.innerHTML=paged.map(d=>`<tr>
+      <td>${datePdfCell(d.br_postpour,d.pdf_br_post,'Bearing Plinths Post-Pour','var(--green)')}</td>
+      <td>${remarkBadge(d.br_remark)}</td>
+    </tr>`).join('');
+  } else if(key==='sub'){
+    tbody.innerHTML=paged.map(d=>`<tr>
       <td class="mono" style="font-weight:600">${d.p||'—'}</td>
-      <td>${linkedDate(d.date,d.pdf_insp,'Open PDF: Casing Inspection','var(--green)')}</td>
-      <td>${linkedDate(d.deviate,d.pdf_deviate,'Open PDF: Pile Deviate','var(--green)')}</td>
+      <td>${linkedDate(d.date,d.pdf_insp,'Open PDF: Inspection','var(--green)')}</td>
+      <td>${d.deviate?`<span class="mono" style="font-size:0.75rem">${d.deviate}</span>`:'<span class="muted">—</span>'}</td>
       <td style="font-size:0.75rem;color:var(--text2)">${d.out_loc||'<span class="muted">—</span>'}</td>
       <td>${statusBadge(d.rebar||d.remark)}</td>
     </tr>`).join('');
@@ -3454,7 +3020,6 @@ function renderTable(key) {
         <td class="mono" style="font-weight:600;white-space:nowrap">${d.pile||'—'}</td>
         <td>${linkedDate(d.elasto,d.pdf_elasto,'Open PDF: Elastomeric','var(--green)')}</td>
         <td>${linkedDate(d.final_align,d.pdf_final_align,'Open PDF: Final Alignment','var(--green)')}</td>
-        <td>${linkedDate(d.seismic,d.pdf_seismic,'Open PDF: Seismic','var(--green)')}</td>
         <td>${linkedDate(d.pre_upstand,d.pdf_pre_upstand,'Open PDF: Pre-Pour UPSTAND','var(--green)')}</td>
         <td>${linkedDate(d.pre_ocs,d.pdf_pre_ocs,'Open PDF: Pre-Pour OCS','var(--green)')}</td>
         <td>${linkedDate(d.post_upstand,d.pdf_post_upstand,'Open PDF: Post-Pour UPSTAND','var(--green)')}</td>
@@ -3468,7 +3033,7 @@ function renderTable(key) {
   }
 }
 
-function renderAllTables(){Object.keys(_renderCache).forEach(k=>delete _renderCache[k]);['angeles','angeles_sigcom','clark','clark_sigcom','sub','mainline','cis','battery','align'].forEach(renderTable);}
+function renderAllTables(){Object.keys(_renderCache).forEach(k=>delete _renderCache[k]);['angeles','clark','sub','mainline','battery','align'].forEach(renderTable);}
 
 function setFilter(key,val,btn){
   pageState[key].filter=val;pageState[key].page=1;
@@ -3489,13 +3054,11 @@ let modalKey='';
 function openAddModal(key){
   if(!editMode){showToast('⚠️ Please enable Edit Mode first','');return;}
   modalKey=key;
-  const titles={angeles:'Add Pile — Angeles',angeles_sigcom:'Add Pile — Angeles Sigcom',clark:'Add Pile — Clark',clark_sigcom:'Add Pile — Clark Sigcom',sub:'Add Pile — Substation',mainline:'Add Pier — Main Line',battery:'Add Point — Battery Post',align:'Add Pier — Alignment'};
+  const titles={angeles:'Add Pile — Angeles',clark:'Add Pile — Clark',sub:'Add Pile — Substation',mainline:'Add Pier — Main Line',battery:'Add Point — Battery Post',align:'Add Pier — Alignment'};
   document.getElementById('modal-title-text').textContent=titles[key]||'Add Record';
   const forms={
     angeles:`<div class="form-group"><label class="form-label">Pile No.</label><input class="form-input" id="f-p" placeholder="e.g. BP87"></div><div class="form-group"><label class="form-label">Casing Inspection Date</label><input class="form-input" id="f-casing" type="date"></div><div class="form-group"><label class="form-label">Pile Deviate Date</label><input class="form-input" id="f-deviate" type="date"></div><div class="form-group"><label class="form-label">Remark / Status</label><select class="form-select" id="f-remark"><option value="">—</option><option value="okay">Okay</option><option value="out of tolerance">Out of Tolerance</option></select></div>`,
-    angeles_sigcom:`<div class="form-group"><label class="form-label">Pile No.</label><input class="form-input" id="f-p" placeholder="e.g. BP21"></div><div class="form-group"><label class="form-label">Casing Inspection Date</label><input class="form-input" id="f-casing" type="date"></div><div class="form-group"><label class="form-label">Pile Deviate Date</label><input class="form-input" id="f-deviate" type="date"></div><div class="form-group"><label class="form-label">Remark / Status</label><select class="form-select" id="f-remark"><option value="">—</option><option value="okay">Okay</option><option value="out of tolerance">Out of Tolerance</option></select></div>`,
     clark:`<div class="form-group"><label class="form-label">Pile No.</label><input class="form-input" id="f-p" placeholder="e.g. BP21"></div><div class="form-group"><label class="form-label">Casing Inspection Date</label><input class="form-input" id="f-casing" type="date"></div><div class="form-group"><label class="form-label">Pile Deviate Date</label><input class="form-input" id="f-deviate" type="date"></div><div class="form-group"><label class="form-label">Remark / Status</label><select class="form-select" id="f-remark"><option value="">—</option><option value="okay">Okay</option><option value="Out of Tolerance">Out of Tolerance</option></select></div>`,
-    clark_sigcom:`<div class="form-group"><label class="form-label">Pile No.</label><input class="form-input" id="f-p" placeholder="e.g. BP21"></div><div class="form-group"><label class="form-label">Casing Inspection Date</label><input class="form-input" id="f-casing" type="date"></div><div class="form-group"><label class="form-label">Pile Deviate Date</label><input class="form-input" id="f-deviate" type="date"></div><div class="form-group"><label class="form-label">Remark / Status</label><select class="form-select" id="f-remark"><option value="">—</option><option value="okay">Okay</option><option value="Out of Tolerance">Out of Tolerance</option></select></div>`,
     sub:`<div class="form-group"><label class="form-label">Point Name</label><input class="form-input" id="f-p" placeholder="e.g. SS18 - BP37"></div><div class="form-group"><label class="form-label">Inspection Date</label><input class="form-input" id="f-date" type="date"></div><div class="form-group"><label class="form-label">Remark</label><input class="form-input" id="f-remark" placeholder="Remark"></div>`,
     mainline:`<div class="form-group"><label class="form-label">Pier No.</label><input class="form-input" id="f-pier" placeholder="e.g. P-865"></div><div class="form-group"><label class="form-label">Pile Config</label><select class="form-select" id="f-cfg"><option value="6 - 1500 DIA">6 - 1500 DIA</option><option value="4 - 1200 DIA">4 - 1200 DIA</option></select></div><div class="form-group"><label class="form-label">Remark</label><input class="form-input" id="f-remark" placeholder="Remark"></div>`,
     battery:`<div class="form-group"><label class="form-label">Point Name</label><input class="form-input" id="f-point" placeholder="e.g. BP3-(02) #1"></div><div class="form-group"><label class="form-label">Post</label><input class="form-input" id="f-post" placeholder="e.g. BP3"></div>`,
@@ -3509,7 +3072,7 @@ function saveModal(){
   const key=modalKey;
   const id=nextId[key]++;
   let row={id};
-  if(key==='angeles'||key==='angeles_sigcom'||key==='clark'||key==='clark_sigcom'){
+  if(key==='angeles'||key==='clark'){
     row.p=document.getElementById('f-p')?.value||'';
     row.casing=document.getElementById('f-casing')?.value||'';
     row.deviate=document.getElementById('f-deviate')?.value||'';
@@ -3761,13 +3324,8 @@ function updateOverview(){
   const align_oot   = alignData.filter(d=>d.final_align && isOOT_a(d.align_remark,d.align_status)).length;
   const align_ok    = align_done - align_oot;
   const align_pend  = alTotal - align_done;
-  const seismic_done = alignData.filter(d=>d.seismic || d.pdf_seismic).length;
-  const seismic_ok   = seismic_done;
-  const seismic_oot  = 0;
-  const seismic_pend = alTotal - seismic_done;
   const elasto_pct  = Math.round(elasto_done/alTotal*100);
   const align_pct   = Math.round(align_done/alTotal*100);
-  const seismic_pct = Math.round(seismic_done/alTotal*100);
   // Parapet stats
   const par_preUp_done   = alignData.filter(d=>d.pre_upstand).length;
   const par_preOCS_done  = alignData.filter(d=>d.pre_ocs).length;
@@ -3786,10 +3344,10 @@ function updateOverview(){
   const par_up_ok        = alignData.filter(d=>d.upstand_status && isOK_a('',d.upstand_status)).length;
   const par_ocs_ok       = alignData.filter(d=>d.ocs_status && isOK_a('',d.ocs_status)).length;
   const alignTitleEl = document.getElementById('align-ov-title');
-  if(alignTitleEl) alignTitleEl.textContent = `Alignment Works — Status Overview (${alTotal} spans)`;
+  if(alignTitleEl) alignTitleEl.textContent = `Final Alignment & Elastomeric — Status Overview (${alTotal} spans)`;
   const alignEl = document.getElementById('alignment-overview');
   if(alignEl) alignEl.innerHTML = `
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
       <div>
         <div class="chart-card-title" style="margin-bottom:0.8rem">Elastomeric</div>
         <div id="elasto-donut-ov"></div>
@@ -3806,16 +3364,8 @@ function updateOverview(){
           <div class="progress-track"><div class="progress-fill" style="width:${align_pct}%;background:linear-gradient(90deg,var(--gold),#f97316)"></div></div>
         </div>
       </div>
-      <div>
-        <div class="chart-card-title" style="margin-bottom:0.8rem">Seismic</div>
-        <div id="seismic-donut-ov"></div>
-        <div class="progress-container" style="margin-top:0.8rem">
-          <div class="progress-label"><span>Completion</span><span>${seismic_pct}%</span></div>
-          <div class="progress-track"><div class="progress-fill" style="width:${seismic_pct}%;background:linear-gradient(90deg,var(--green),#22c55e)"></div></div>
-        </div>
-      </div>
     </div>
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:6px;margin-top:1rem">
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:1rem">
       <div style="background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.2);border-radius:9px;padding:8px;text-align:center">
         <div style="font-family:'Fraunces',serif;font-size:1.3rem;color:var(--accent);font-weight:800">${elasto_done}</div>
         <div style="font-size:0.65rem;color:var(--text3)">Elasto Done</div>
@@ -3827,10 +3377,6 @@ function updateOverview(){
       <div style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);border-radius:9px;padding:8px;text-align:center">
         <div style="font-family:'Fraunces',serif;font-size:1.3rem;color:var(--green);font-weight:800">${align_done}</div>
         <div style="font-size:0.65rem;color:var(--text3)">Align Done</div>
-      </div>
-      <div style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);border-radius:9px;padding:8px;text-align:center">
-        <div style="font-family:'Fraunces',serif;font-size:1.3rem;color:var(--green);font-weight:800">${seismic_done}</div>
-        <div style="font-size:0.65rem;color:var(--text3)">Seismic Done</div>
       </div>
       <div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:9px;padding:8px;text-align:center">
         <div style="font-family:'Fraunces',serif;font-size:1.3rem;color:var(--red);font-weight:800">${align_oot}</div>
@@ -3922,7 +3468,6 @@ function updateOverview(){
 
     makeDonut('elasto-donut-ov',[{l:'OK',v:elasto_ok,c:'#10b981'},{l:'OOT',v:elasto_oot,c:'#ef4444'},{l:'Pending',v:elasto_pend,c:'#64748b'}]);
   makeDonut('align-donut-ov',[{l:'OK',v:align_ok,c:'#10b981'},{l:'OOT',v:align_oot,c:'#ef4444'},{l:'Pending',v:align_pend,c:'#64748b'}]);
-  makeDonut('seismic-donut-ov',[{l:'Done',v:seismic_ok,c:'#10b981'},{l:'OOT',v:seismic_oot,c:'#ef4444'},{l:'Pending',v:seismic_pend,c:'#64748b'}]);
 
   // Build pending alerts
   buildPendingAlerts();
@@ -3942,15 +3487,14 @@ function updateOverview(){
   ml.forEach(d=>{
     const cfg = d.cfg||'';
     const m = cfg.match(/^(\d+)/);
-    const n = d.pileCount || (m ? parseInt(m[1]) : 0);
+    const n = m ? parseInt(m[1]) : 0;
     const ex = (d.extra1?1:0)+(d.extra2?1:0);
-    const boredTotal = n + ex;
-    mlTotalPiles += boredTotal;
+    mlTotalPiles += n + ex;
 
     const pileDates = ['p1','p2','p3','p4','p5','p6','p7','p8','p9'].slice(0,n).map(k=>d[k]||'');
     const done = pileDates.filter(Boolean).length + ex;
     mlInspected += done;
-    if(boredTotal>0 && done===boredTotal) mlBPComplete++;
+    if(n>0 && done===n) mlBPComplete++;
     else if(done>0) mlBPPartial++;
 
     if(hasSheetData(d, 'footing', 'pdf_footing'))              mlFooting++;
@@ -3981,7 +3525,7 @@ function updateOverview(){
   if(mlPctEl) mlPctEl.textContent = mlPct + '%';
   if(mlBarEl) mlBarEl.style.width = mlPct + '%';
 
-  function mlPipeRow(label, done, total, sub, unit=''){
+  function mlPipeRow(label, done, total, sub){
     const pct = total>0 ? Math.round(done/total*100) : 0;
     const isLow = pct < 35;
     const color = isLow ? '#EF9F27' : '#639922';
@@ -3991,7 +3535,7 @@ function updateOverview(){
         <div style="width:${pct}%;height:100%;background:${color};border-radius:3px 0 0 3px"></div>
       </div>
       <span style="font-size:0.7rem;font-family:'DM Mono',monospace;color:var(--text3);width:36px;text-align:right">${pct}%</span>
-      <span style="font-size:0.7rem;font-family:'DM Mono',monospace;color:var(--text3);width:${unit?'104px':'76px'};text-align:right">${done}/${total}${unit ? ' ' + unit : ''}</span>
+      <span style="font-size:0.7rem;font-family:'DM Mono',monospace;color:var(--text3);width:52px;text-align:right">${done}/${total}</span>
     </div>`;
   }
 
@@ -4023,7 +3567,7 @@ function updateOverview(){
     <div style="border:1px solid var(--border);border-radius:12px;padding:1rem">
       <div style="font-size:0.72rem;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.07em;color:var(--text3);margin-bottom:8px">Progress by Work Stage</div>
 
-      ${mlPipeRow('1 · Bored Piles (All piles)', mlInspected, mlTotalPiles, false, 'piles')}
+      ${mlPipeRow('1 · Bored Piles (All piles complete)', mlBPComplete, mlTotal)}
       ${mlPipeRow('↳ Partial (some piles)', mlBPPartial, mlTotal, true)}
       <div style="height:1px;background:var(--border);margin:4px 0"></div>
       ${mlPipeRow('2 · Footing Excavation', mlFooting, mlTotal)}
@@ -4092,7 +3636,7 @@ function showSection(id,btn){
   if(btn) btn.classList.add('active');
 }
 function setStationTab(tab,btn){
-  ['angeles','angeles_sigcom','clark','clark_sigcom','battery'].forEach(t=>{document.getElementById('tab-'+t).style.display=t===tab?'block':'none';});
+  ['angeles','clark','battery'].forEach(t=>{document.getElementById('tab-'+t).style.display=t===tab?'block':'none';});
   document.querySelectorAll('.tabs .tab-btn').forEach(b=>b.classList.remove('active'));
   if(btn) btn.classList.add('active');
 }

@@ -1781,6 +1781,11 @@ const MAINLINE_DATE_OVERRIDES = {
   'P-1094': { pc_prepour: '29/May/26' },
 };
 
+const MAINLINE_PILE_DATE_OVERRIDES = {
+  'P-888': { 6: '03/07/2026' },
+  'P-1064': { 2: '03/07/2026', 5: '03/07/2026' },
+};
+
 function hasSheetData(record, valueKey, pdfKey) {
   return !!(record && (record[valueKey] || (pdfKey && record[pdfKey])));
 }
@@ -1976,6 +1981,29 @@ function lookupMainlinePilePdf(pier, pileNo) {
   if(direct) return direct;
   const suffixMatch = Object.keys(files).find(k => k.toLowerCase() === `${pileNo}a`);
   return suffixMatch ? files[suffixMatch] : '';
+}
+
+function repairMainlinePileRecords(records) {
+  (records || []).forEach(record => {
+    const overrides = MAINLINE_PILE_DATE_OVERRIDES[record.pier];
+    if(!overrides) return;
+    record.pileDates = record.pileDates || [];
+    record.pilePdfLinks = record.pilePdfLinks || [];
+    Object.entries(overrides).forEach(([pileNoText, date]) => {
+      const pileNo = parseInt(pileNoText, 10);
+      if(!pileNo || pileNo > (record.pileCount || 0)) return;
+      const index = pileNo - 1;
+      const dateKey = 'p' + pileNo;
+      const pdfKey = 'pdf_p' + pileNo;
+      const pdfUrl = record[pdfKey] || record.pilePdfLinks[index] || lookupMainlinePilePdf(record.pier, pileNo);
+      if(date && !record[dateKey]) record[dateKey] = date;
+      if(pdfUrl) record[pdfKey] = pdfUrl;
+      record.pileDates[index] = record[dateKey] || record.pileDates[index] || '';
+      record.pilePdfLinks[index] = record[pdfKey] || record.pilePdfLinks[index] || '';
+    });
+    record.pilesComplete = Array.from({ length: record.pileCount || 0 }, (_, i) => record['p' + (i + 1)]).filter(Boolean).length;
+  });
+  return records;
 }
 
 function normalizeStationPdfKey(value) {
@@ -2401,6 +2429,8 @@ async function loadFromSheets() {
     if(s20.length > 0) DB.ss20 = s20;
     if(s21.length > 0) DB.ss21 = s21;
 
+    repairMainlinePileRecords(DB.mainline);
+
     // Set active substation BEFORE rendering
     DB.sub = DB[_activeSS] || DB.ss18 || [];
     console.log('Substations — ss18:', DB.ss18.length, 'ss19:', DB.ss19.length,
@@ -2416,6 +2446,7 @@ async function loadFromSheets() {
     setStatus('error', 'Load failed');
     showToast('⚠️ Load failed: ' + e.message, '');
     // Still render with default data
+    repairMainlinePileRecords(DB.mainline);
     renderAllTables();
     updateOverview();
   } finally {
@@ -2526,6 +2557,7 @@ function parseMainline(rows) {
       result.push(record);
     }
   }
+  repairMainlinePileRecords(result);
   console.log('parseMainline:', result.length, 'piers');
   // DEBUG: log P-893 raw data
   const p893 = result.find(d=>d.pier==='P-893');

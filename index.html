@@ -1551,7 +1551,7 @@ if (typeof window !== 'undefined') {
   window.MAINLINE_PDF_INDEX = MAINLINE_PDF_INDEX;
 }
 </script>
-<script src="./bored-pile-pdf-index.js?v=20260704-casing-links"></script>
+<script src="./bored-pile-pdf-index.js?v=20260704-casing-links-2"></script>
 <script src="./station-pdf-index.js"></script>
 <script>
 // ============================================================
@@ -1964,9 +1964,12 @@ function lookupMainlinePdf(pier, type) {
 }
 
 function lookupMainlinePilePdf(pier, pileNo) {
-  const index =
+  const windowIndex =
     (typeof window !== 'undefined' && window.MAINLINE_BORED_PILE_PDF_INDEX) ||
-    (((typeof MAINLINE_PDF_INDEX !== 'undefined') ? MAINLINE_PDF_INDEX : {}).bored_pile || {});
+    (typeof window !== 'undefined' && window.MAINLINE_PDF_INDEX && window.MAINLINE_PDF_INDEX.bored_pile) ||
+    {};
+  const localIndex = (((typeof MAINLINE_PDF_INDEX !== 'undefined') ? MAINLINE_PDF_INDEX : {}).bored_pile || {});
+  const index = Object.assign({}, localIndex, windowIndex);
   const key = normalizeMainlinePdfKey(pier);
   const files = key ? (index[key] || {}) : {};
   const direct = files[String(pileNo)];

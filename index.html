@@ -1817,9 +1817,23 @@ pageState.align.perPage=15;
 // ============================================================
 const SHEET_ID = '1WnaZjROaEz6MgJ9_uwo08zMo0kmB9CR_I7RL2f4RMRo';
 const SHEETS_API = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&headers=1&sheet=`;
+const MAINLINE_BORED_PILE_LIVE_INDEX_URL = (() => {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    return (
+      params.get('boredPileIndexUrl') ||
+      (window.MONITORING_CONFIG && window.MONITORING_CONFIG.boredPileIndexUrl) ||
+      window.localStorage.getItem('monitoring.boredPileIndexUrl') ||
+      ''
+    ).trim();
+  } catch (_err) {
+    return '';
+  }
+})();
 // gid overrides for tabs that gviz can't find by name
 const TAB_GIDS = {
   mainline: '2060356638',   // "Main line"
+  mainline_pdf_links: '361184784', // dedicated bored-pile PDF links
   ss18:     '401777996',    // Substation 18
   ss19:     '701289398',    // Substation 19
   ss20:     '564054978',    // Substation 20
@@ -1833,7 +1847,8 @@ const TAB_GIDS = {
 
 // Tab names in Google Sheets (must match exactly)
 const TAB_NAMES = {
-  mainline:  'Main line',
+  mainline:  'Main line ',
+  mainline_pdf_links: 'PDF Link Bored Pile',
   angeles:   'Angeles Station Piles',
   clark:     'Clark Station Piles',
   sub:       'Substation',
@@ -1947,6 +1962,101 @@ function cellLink(cell) {
 
 function pdfLink(cell) {
   return cellLink(cell) || firstUrl(cellVal(cell));
+}
+
+function normalizeMainlineBoredPileLiveIndex(raw) {
+  const source =
+    raw && typeof raw === 'object' && !Array.isArray(raw) && raw.index && typeof raw.index === 'object'
+      ? raw.index
+      : raw;
+  const normalized = {};
+  if(!source || typeof source !== 'object') return normalized;
+  for(const [pier, pileMap] of Object.entries(source)) {
+    const pierKey = String(pier || '').trim().toUpperCase();
+    if(!pierKey || !pileMap || typeof pileMap !== 'object') continue;
+    const files = {};
+    for(const [pileNo, url] of Object.entries(pileMap)) {
+      const href = firstUrl(url);
+      if(href) files[String(pileNo).trim()] = href;
+    }
+    if(Object.keys(files).length) normalized[pierKey] = files;
+  }
+  return normalized;
+}
+
+function mergeMainlineBoredPileIndexes(baseIndex, liveIndex) {
+  const merged = {};
+  [baseIndex || {}, liveIndex || {}].forEach(source => {
+    Object.entries(source).forEach(([pier, pileMap]) => {
+      if(!merged[pier]) merged[pier] = {};
+      Object.assign(merged[pier], pileMap || {});
+    });
+  });
+  return merged;
+}
+
+function fetchJsonpResource(url, timeoutMs=15000) {
+  return new Promise((resolve, reject) => {
+    const cb = '__pdf_index_cb_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+    const callbackUrl = new URL(url);
+    callbackUrl.searchParams.set('callback', cb);
+    const script = document.createElement('script');
+    const cleanup = () => {
+      clearTimeout(timer);
+      delete window[cb];
+      script.remove();
+    };
+    const timer = setTimeout(() => {
+      cleanup();
+      reject(new Error('JSONP timeout'));
+    }, timeoutMs);
+    window[cb] = payload => {
+      cleanup();
+      resolve(payload);
+    };
+    script.onerror = () => {
+      cleanup();
+      reject(new Error('JSONP load failed'));
+    };
+    script.src = callbackUrl.toString();
+    document.head.appendChild(script);
+  });
+}
+
+async function fetchMainlineBoredPileLiveIndex(url) {
+  if(!url) return {};
+  if(/\.json(?:$|[?#])/i.test(url)) {
+    const res = await fetch(url, { cache: 'no-store' });
+    if(!res.ok) throw new Error(`Live PDF index fetch failed: ${res.status}`);
+    return res.json();
+  }
+  return fetchJsonpResource(url);
+}
+
+let mainlineBoredPileIndexLoadPromise = null;
+async function loadMainlineBoredPileLiveIndex(force=false) {
+  if(!MAINLINE_BORED_PILE_LIVE_INDEX_URL) return {};
+  if(mainlineBoredPileIndexLoadPromise && !force) return mainlineBoredPileIndexLoadPromise;
+  mainlineBoredPileIndexLoadPromise = (async () => {
+    try {
+      const payload = await fetchMainlineBoredPileLiveIndex(MAINLINE_BORED_PILE_LIVE_INDEX_URL);
+      const liveIndex = normalizeMainlineBoredPileLiveIndex(payload);
+      const baseIndex =
+        (typeof window !== 'undefined' && window.MAINLINE_BORED_PILE_PDF_INDEX) ||
+        (typeof window !== 'undefined' && window.MAINLINE_PDF_INDEX && window.MAINLINE_PDF_INDEX.bored_pile) ||
+        (((typeof MAINLINE_PDF_INDEX !== 'undefined') ? MAINLINE_PDF_INDEX : {}).bored_pile) ||
+        {};
+      const merged = mergeMainlineBoredPileIndexes(baseIndex, liveIndex);
+      if(typeof window !== 'undefined') window.MAINLINE_BORED_PILE_PDF_INDEX = merged;
+      if(typeof MAINLINE_PDF_INDEX !== 'undefined') MAINLINE_PDF_INDEX.bored_pile = merged;
+      console.log('Loaded live bored-pile PDF index:', Object.keys(liveIndex).length, 'piers');
+      return liveIndex;
+    } catch(err) {
+      console.warn('Live bored-pile PDF index unavailable:', err.message);
+      return {};
+    }
+  })();
+  return mainlineBoredPileIndexLoadPromise;
 }
 
 function normalizeMainlinePdfKey(pier) {
@@ -2666,9 +2776,15 @@ async function loadFromSheets() {
     const lt = document.getElementById('loading-text');
     const update = (msg) => { if(lt) lt.textContent = msg; };
 
+    if(MAINLINE_BORED_PILE_LIVE_INDEX_URL) {
+      update('Loading live bored-pile PDF links...');
+      await loadMainlineBoredPileLiveIndex(true);
+    }
+
     update('Loading sheet tabs...');
     const [
       mlRows,
+      mainlinePdfRows,
       angRows,
       clRows,
       subRows18,
@@ -2680,6 +2796,7 @@ async function loadFromSheets() {
       cisRows
     ] = await Promise.all([
       fetchTabSafe(TAB_NAMES.mainline, 'A:AT'),
+      fetchTabSafe(TAB_NAMES.mainline_pdf_links, 'A:R', 15000, TAB_GIDS.mainline_pdf_links),
       fetchTabSafe(TAB_NAMES.angeles, 'A:L'),
       fetchTabSafe(TAB_NAMES.clark, 'A:L'),
       fetchTabSafe(TAB_NAMES.ss18, 'A:F', 15000, TAB_GIDS.ss18),
@@ -2693,6 +2810,7 @@ async function loadFromSheets() {
     const subRows = subRows18;
 
 	    const ml  = parseMainline(mlRows);
+    applyMainlinePileLinkSheet(ml, mainlinePdfRows);
 	    const ang = parsePiles(angRows, 0, 'angeles', 0);
     const angSig = parsePiles(angRows, 0, 'angeles_sigcom', 4);
     const cl  = parsePiles(clRows, 0, 'clark', 0);
@@ -2815,7 +2933,7 @@ function parseMainline(rows) {
       p5:cellVal(c[6]),p6:cellVal(c[7]),p7:cellVal(c[8]),p8:cellVal(c[9]),p9:cellVal(c[10]),
       pdf_p1:pilePdfLinks[0]||'',pdf_p2:pilePdfLinks[1]||'',pdf_p3:pilePdfLinks[2]||'',pdf_p4:pilePdfLinks[3]||'',
       pdf_p5:pilePdfLinks[4]||'',pdf_p6:pilePdfLinks[5]||'',pdf_p7:pilePdfLinks[6]||'',pdf_p8:pilePdfLinks[7]||'',pdf_p9:pilePdfLinks[8]||'',
-      extra1:cellVal(c[11]),extra2:cellVal(c[12]),total:cellVal(c[13]),
+      extra1:cellVal(c[11]),extra2:cellVal(c[12]),extra3:cellVal(c[13]),extra4:cellVal(c[14]),extra5:cellVal(c[15]),extra6:cellVal(c[16]),total:cellVal(c[17]),
       pilesComplete, pileDates, pilePdfLinks,
       // Footing Excavation
       footing:cellVal(c[14]),
@@ -2870,6 +2988,39 @@ function parseMainline(rows) {
     });
   }
   return result;
+}
+
+function applyMainlinePileLinkSheet(records, rows) {
+  if(!Array.isArray(records) || !records.length || !Array.isArray(rows) || !rows.length) return records;
+  const byPier = new Map(records.map(record => [normalizeMainlinePdfKey(record.pier), record]));
+  let applied = 0;
+  for(const row of rows) {
+    const cells = row && row.c ? row.c : [];
+    const pier = normalizeMainlinePdfKey(cellVal(cells[0]));
+    if(!pier || !pier.startsWith('P-')) continue;
+    const record = byPier.get(pier);
+    if(!record) continue;
+    const cfg = cellVal(cells[1]);
+    if(cfg) record.cfg = cfg;
+    record.pilePdfLinks = record.pilePdfLinks || Array.from({ length: record.pileCount || 0 }, () => '');
+    for(let pileNo = 1; pileNo <= Math.min(record.pileCount || 0, 9); pileNo++) {
+      const url = pdfLink(cells[pileNo + 1]) || firstUrl(cellVal(cells[pileNo + 1]));
+      if(!url) continue;
+      const index = pileNo - 1;
+      const key = 'pdf_p' + pileNo;
+      record[key] = url;
+      record.pilePdfLinks[index] = url;
+      applied++;
+    }
+    const extras = [11, 12, 13, 14, 15, 16].map(idx => cellVal(cells[idx]));
+    extras.forEach((value, idx) => {
+      if(value) record['extra' + (idx + 1)] = value;
+    });
+    const total = cellVal(cells[17]);
+    if(total) record.total = total;
+  }
+  if(applied) console.log('Applied mainline pile links from dedicated sheet:', applied);
+  return records;
 }
 
 // ── PARSE CAST IN-SITU ──────────────────────────────────────────
@@ -3978,7 +4129,7 @@ function updateOverview(){
     const cfg = d.cfg||'';
     const m = cfg.match(/^(\d+)/);
     const n = d.pileCount || (m ? parseInt(m[1]) : 0);
-    const ex = (d.extra1?1:0)+(d.extra2?1:0);
+    const ex = [d.extra1, d.extra2, d.extra3, d.extra4, d.extra5, d.extra6].filter(Boolean).length;
     const boredTotal = n + ex;
     mlTotalPiles += boredTotal;
 

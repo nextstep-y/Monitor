@@ -4,11 +4,31 @@ const CIS_PDF_INDEX = {
     {
       "cis": "CIS40-14",
       "span": "",
+      "stage": "Bottom Formwork",
+      "date": "",
+      "wir": "25759",
+      "file": "Formworks CIS40-14 Bottom Slab WIR 025759.pdf",
+      "url": "https://drive.google.com/file/d/1V7irzgbSivJg9nWMwEld5juaLhZFRiGQ/view?usp=sharing",
+      "folder": "Cast In-Situ/CIS40-14"
+    },
+    {
+      "cis": "CIS40-14",
+      "span": "",
       "stage": "Other",
       "date": "",
       "wir": "",
-      "file": "NSCR-GCR-N03-ZWD-DRC-ST-001696 (Rev. C) (3).pdf",
+      "file": "NSCR-GCR-N03-ZWD-DRC-ST-001696 (Rev. C) - SHOP DRAWING.pdf",
       "url": "https://drive.google.com/file/d/1CMe5VG8nWr-dQD_elz6L6PUTI3K8HGL8/view?usp=sharing",
+      "folder": "Cast In-Situ/CIS40-14"
+    },
+    {
+      "cis": "CIS40-14",
+      "span": "",
+      "stage": "Top Slab As-Built",
+      "date": "",
+      "wir": "37727",
+      "file": "CIS40-14 As-Built Top Slab WIR 037727.pdf",
+      "url": "https://drive.google.com/file/d/1_S4Ni8EPLSvnZ6hZhvceKbMHl-9GK7G2/view?usp=sharing",
       "folder": "Cast In-Situ/CIS40-14"
     },
     {
@@ -18,18 +38,8 @@ const CIS_PDF_INDEX = {
       "date": "",
       "wir": "",
       "file": "CIS40-14 Bottom Formworks P1121-P1122.pdf",
-      "url": "https://drive.google.com/file/d/1ns9eGPNT8omEBYHnp0Xtod2Fm1rwBTTk/view?usp=sharing",
-      "folder": "Cast In-Situ/CIS40-14/P1121-P1122"
-    },
-    {
-      "cis": "CIS40-14",
-      "span": "P to 1121-P-1122",
-      "stage": "Bottom Formwork",
-      "date": "",
-      "wir": "25759",
-      "file": "Formworks CIS40-14 Bottom Slab WIR 025759.pdf",
-      "url": "https://drive.google.com/file/d/10gUGdZjyzKBuUW4IEuTrxF1ZZL2-IC_1/view?usp=sharing",
-      "folder": "Cast In-Situ/CIS40-14/P1121-P1122"
+      "url": "https://drive.google.com/file/d/1zC-Gr5cvpbBv5za7xus-3K1oTjfYi8F-/view?usp=sharing",
+      "folder": "Cast In-Situ/CIS40-14"
     },
     {
       "cis": "CIS40-14",
@@ -38,8 +48,8 @@ const CIS_PDF_INDEX = {
       "date": "",
       "wir": "25331",
       "file": "As built Check for Bottom Slap Blister and End Wall at CIS40-14 P-1121-P-1122- WIR 025331..pdf",
-      "url": "https://drive.google.com/file/d/1nncBt76k-hf-W4e3mz6X984xsWRVYKlW/view?usp=sharing",
-      "folder": "Cast In-Situ/CIS40-14/P1121-P1122"
+      "url": "https://drive.google.com/file/d/1GZtmumlnru9ZG5K29CWIluHQ2Av8gcmT/view?usp=sharing",
+      "folder": "Cast In-Situ/CIS40-14"
     },
     {
       "cis": "CIS40-14",
@@ -48,18 +58,8 @@ const CIS_PDF_INDEX = {
       "date": "",
       "wir": "24985",
       "file": "CIS40-14 Check for Bottom Slab Blister and End Wall at P-1121-P-1122 WIR 024985.pdf",
-      "url": "https://drive.google.com/file/d/1nnq3l06Fe2rzrQDfNrv8ZT5K4hUW_l-y/view?usp=sharing",
-      "folder": "Cast In-Situ/CIS40-14/P1121-P1122"
-    },
-    {
-      "cis": "CIS40-14",
-      "span": "P to 1121-P-1122",
-      "stage": "Top Slab As-Built",
-      "date": "",
-      "wir": "37727",
-      "file": "CIS40-14 As-Built Top Slab WIR 037727.pdf",
-      "url": "https://drive.google.com/file/d/14drhBP3DMm2Dz60TPQHGNHGRnoC5wyyg/view?usp=sharing",
-      "folder": "Cast In-Situ/CIS40-14/P1121-P1122"
+      "url": "https://drive.google.com/file/d/1vLjPR2IWQSjUU7K75qxbHb0YPZBOemIw/view?usp=sharing",
+      "folder": "Cast In-Situ/CIS40-14"
     },
     {
       "cis": "CIS40-14",
@@ -68,8 +68,8 @@ const CIS_PDF_INDEX = {
       "date": "",
       "wir": "25489",
       "file": "As built Check for Webs and Inner Walls CIS40-14 P-1121-P-1122-WIR 025489.pdf",
-      "url": "https://drive.google.com/file/d/1CfulxnJr1OHqEcKIkntbhopWN55fEedN/view?usp=sharing",
-      "folder": "Cast In-Situ/CIS40-14/P1121-P1122"
+      "url": "https://drive.google.com/file/d/12muKH0O1lC5LSk2jbRwdIsN1k5wcWvMb/view?usp=sharing",
+      "folder": "Cast In-Situ/CIS40-14"
     },
     {
       "cis": "CIS40-14",
@@ -78,8 +78,8 @@ const CIS_PDF_INDEX = {
       "date": "",
       "wir": "25428",
       "file": "CIS40-14 Check Webs and Inner Walls at CIS40 P1121-P1122 WIR 025428.pdf",
-      "url": "https://drive.google.com/file/d/1nyuWs61yMDJXrl2ryD_SlKo2jj7sElkV/view?usp=sharing",
-      "folder": "Cast In-Situ/CIS40-14/P1121-P1122"
+      "url": "https://drive.google.com/file/d/1bulApfoQojIFcH9aspDUM2-8CS6OGid2/view?usp=sharing",
+      "folder": "Cast In-Situ/CIS40-14"
     },
     {
       "cis": "CIS50-6",
@@ -168,8 +168,8 @@ const CIS_PDF_INDEX = {
       "date": "",
       "wir": "25621",
       "file": "Check Bottom Formworks Inspection for Top Slab CIS50-8 P1120-P1121 WIR 025621 (After Rectificationb Rebar as Per GCR Request).pdf",
-      "url": "https://drive.google.com/file/d/1oTT3a42wOjdaNNTCmqZznBIuxjX9oG-A/view?usp=sharing",
-      "folder": "Cast In-Situ/CIS50-8/P1120-P1121"
+      "url": "https://drive.google.com/file/d/1n1WZtWMvaBKVUWTqgk_UIG5Xq88eY374/view?usp=sharing",
+      "folder": "Cast In-Situ/CIS50-8"
     },
     {
       "cis": "CIS50-8",
@@ -178,8 +178,8 @@ const CIS_PDF_INDEX = {
       "date": "",
       "wir": "25621",
       "file": "Check Bottom Formworks Inspection for Top Slab CIS50-8 P1120-P1121 WIR 025621.pdf",
-      "url": "https://drive.google.com/file/d/1o_3q7rXslqdwSAGd5ffKwtJV8oPkwf3a/view?usp=sharing",
-      "folder": "Cast In-Situ/CIS50-8/P1120-P1121"
+      "url": "https://drive.google.com/file/d/1pdIfnAI6jKmZRHh5Fus3FND6SZi155ZS/view?usp=sharing",
+      "folder": "Cast In-Situ/CIS50-8"
     },
     {
       "cis": "CIS50-8",
@@ -188,8 +188,8 @@ const CIS_PDF_INDEX = {
       "date": "",
       "wir": "",
       "file": "CIS50-8 Bottom Formworks P1120-P1121 (Internal).pdf",
-      "url": "https://drive.google.com/file/d/1nvQo0y2d5SoepJjxL1TqozMG2V2Zddvl/view?usp=sharing",
-      "folder": "Cast In-Situ/CIS50-8/P1120-P1121"
+      "url": "https://drive.google.com/file/d/1miaunqYcRlHlHOWXdEF6-7j2rAPJm0dw/view?usp=sharing",
+      "folder": "Cast In-Situ/CIS50-8"
     },
     {
       "cis": "CIS50-8",
@@ -198,8 +198,8 @@ const CIS_PDF_INDEX = {
       "date": "",
       "wir": "",
       "file": "CIS50-8 Bottom Formworks P1120-P1121.pdf",
-      "url": "https://drive.google.com/file/d/1o8aXzx42PXLm2_Wf1sYz9P99eg8psf-M/view?usp=sharing",
-      "folder": "Cast In-Situ/CIS50-8/P1120-P1121"
+      "url": "https://drive.google.com/file/d/1ipFkOwMgdfmG907ewOS7q7HL62e9EqU2/view?usp=sharing",
+      "folder": "Cast In-Situ/CIS50-8"
     },
     {
       "cis": "CIS50-8",
@@ -208,8 +208,8 @@ const CIS_PDF_INDEX = {
       "date": "",
       "wir": "25368",
       "file": "As built As built CIS50-8 Upper Slab, Blister and End Wall at P1120-P1121-WIR 025368.pdf",
-      "url": "https://drive.google.com/file/d/1oI4LrW7adSuuv9c5luTNIdx4GZeFxEYA/view?usp=sharing",
-      "folder": "Cast In-Situ/CIS50-8/P1120-P1121"
+      "url": "https://drive.google.com/file/d/1oLO52DCwqjaX-qMgt8viEmIrlhfTdxLw/view?usp=sharing",
+      "folder": "Cast In-Situ/CIS50-8"
     },
     {
       "cis": "CIS50-8",
@@ -218,8 +218,8 @@ const CIS_PDF_INDEX = {
       "date": "",
       "wir": "24907",
       "file": "As built CIS50-8 Bottom Slab, Blister and End Wall at P1120-P1121- WIR 024907.pdf",
-      "url": "https://drive.google.com/file/d/1oA0YYFwf_DQHtjeXf0D6MqtWq0kYp3QM/view?usp=sharing",
-      "folder": "Cast In-Situ/CIS50-8/P1120-P1121"
+      "url": "https://drive.google.com/file/d/1JBMqQLFnTouQg-fVsWEWqSYz-Grv8-AK/view?usp=sharing",
+      "folder": "Cast In-Situ/CIS50-8"
     },
     {
       "cis": "CIS50-8",
@@ -228,8 +228,8 @@ const CIS_PDF_INDEX = {
       "date": "",
       "wir": "",
       "file": "CIS50-8 Check  Bottom Slab, Blister and End Wall  P1120-P1121.pdf",
-      "url": "https://drive.google.com/file/d/1oIIYpzoNbnzI9MgZHIDuaojOKWuHLnaN/view?usp=sharing",
-      "folder": "Cast In-Situ/CIS50-8/P1120-P1121"
+      "url": "https://drive.google.com/file/d/1IzO2V7Dfd3Qg1EECmoP8Ys2eM1kHotv_/view?usp=sharing",
+      "folder": "Cast In-Situ/CIS50-8"
     },
     {
       "cis": "CIS50-8",
@@ -238,8 +238,8 @@ const CIS_PDF_INDEX = {
       "date": "",
       "wir": "",
       "file": "CIS Bottom Slab, Blister and End Wall at CIS50 P1120-P1121.pdf",
-      "url": "https://drive.google.com/file/d/1o7KBKqThPAXpx2wX8p9R2V1GYLUKVjO7/view?usp=sharing",
-      "folder": "Cast In-Situ/CIS50-8/P1120-P1121"
+      "url": "https://drive.google.com/file/d/1ijfesWK1MCeuTUWdKv03JS-00HHcPHqJ/view?usp=sharing",
+      "folder": "Cast In-Situ/CIS50-8"
     },
     {
       "cis": "CIS50-8",
@@ -248,8 +248,8 @@ const CIS_PDF_INDEX = {
       "date": "",
       "wir": "",
       "file": "As Built CIS50-8 P1120-P1121 Shear Key & Seismic Restrainer Block Outs.pdf",
-      "url": "https://drive.google.com/file/d/1RHZo6dpSfyX0bDDC6Y-T0G1b9M-MCwes/view?usp=sharing",
-      "folder": "Cast In-Situ/CIS50-8/P1120-P1121"
+      "url": "https://drive.google.com/file/d/1i7A_oOPzFYZlRT0s0EtiPHL8IVXWJzJF/view?usp=sharing",
+      "folder": "Cast In-Situ/CIS50-8"
     },
     {
       "cis": "CIS50-8",
@@ -258,8 +258,8 @@ const CIS_PDF_INDEX = {
       "date": "",
       "wir": "25764",
       "file": "CIS50 P1120-P1121 Shear Key & Seismic Restrainer Block Outs WIR 025764.pdf",
-      "url": "https://drive.google.com/file/d/1ogOpRRw6aFHfJt3lkM0X7ImDIbOWyFXQ/view?usp=sharing",
-      "folder": "Cast In-Situ/CIS50-8/P1120-P1121"
+      "url": "https://drive.google.com/file/d/170pyU6p234-SJHSC76_Pc6Pt1QfSxZZ1/view?usp=sharing",
+      "folder": "Cast In-Situ/CIS50-8"
     },
     {
       "cis": "CIS50-8",
@@ -268,8 +268,8 @@ const CIS_PDF_INDEX = {
       "date": "",
       "wir": "",
       "file": "CIS50-8 As built Check for Seismic Restrainer and Manhole access opening at P-1120 to P-1121.pdf",
-      "url": "https://drive.google.com/file/d/1o-tU_AnGe4Th-vq_usu6LC0YpLNbt0HJ/view?usp=sharing",
-      "folder": "Cast In-Situ/CIS50-8/P1120-P1121"
+      "url": "https://drive.google.com/file/d/10X1uEaTOHHTzj8L9v4ygnfQTgYyekrTO/view?usp=sharing",
+      "folder": "Cast In-Situ/CIS50-8"
     },
     {
       "cis": "CIS50-8",
@@ -278,8 +278,8 @@ const CIS_PDF_INDEX = {
       "date": "",
       "wir": "",
       "file": "As built CIS50-8 Top Drain at P1120-P1121.pdf",
-      "url": "https://drive.google.com/file/d/1kyRAEBfNfsLH8aniIOx5YGQ8GQ97iFxb/view?usp=sharing",
-      "folder": "Cast In-Situ/CIS50-8/P1120-P1121"
+      "url": "https://drive.google.com/file/d/1TY5odD1QJrI2r7wMD3wPkL4K-XvSRNce/view?usp=sharing",
+      "folder": "Cast In-Situ/CIS50-8"
     },
     {
       "cis": "CIS50-8",
@@ -288,8 +288,8 @@ const CIS_PDF_INDEX = {
       "date": "",
       "wir": "26559",
       "file": "CIS50-8 As Built Top Slab P1120-P1121 WIR 026559.pdf",
-      "url": "https://drive.google.com/file/d/17Vk6KZoS5lfl8lU-uS-_qyHPFkott1dQ/view?usp=sharing",
-      "folder": "Cast In-Situ/CIS50-8/P1120-P1121"
+      "url": "https://drive.google.com/file/d/11GsKXF8pHRmng99PwaHC-hhFzQ04_NIa/view?usp=sharing",
+      "folder": "Cast In-Situ/CIS50-8"
     },
     {
       "cis": "CIS50-8",
@@ -298,8 +298,8 @@ const CIS_PDF_INDEX = {
       "date": "",
       "wir": "38435",
       "file": "CIS50-8 As Built Top Slab P1120-P1121 WIR 038435.pdf",
-      "url": "https://drive.google.com/file/d/1LNwRxEA_Usy_cZsyNy28boGuLlGXxXAE/view?usp=sharing",
-      "folder": "Cast In-Situ/CIS50-8/P1120-P1121"
+      "url": "https://drive.google.com/file/d/1d2tRjm5OmAzoHuZvGh1ayqrO6iEQFKY9/view?usp=sharing",
+      "folder": "Cast In-Situ/CIS50-8"
     },
     {
       "cis": "CIS50-8",
@@ -308,8 +308,8 @@ const CIS_PDF_INDEX = {
       "date": "",
       "wir": "",
       "file": "CIS50-8 As Built Top Slab P1120-P1121 WIR.pdf",
-      "url": "https://drive.google.com/file/d/1a_kknywbmT0bH-7ZacAO6E7RbCL9Lmts/view?usp=sharing",
-      "folder": "Cast In-Situ/CIS50-8/P1120-P1121"
+      "url": "https://drive.google.com/file/d/1XsquY3z_ID27wNTogqRS1jIWtDo9OATY/view?usp=sharing",
+      "folder": "Cast In-Situ/CIS50-8"
     },
     {
       "cis": "CIS50-8",
@@ -318,8 +318,8 @@ const CIS_PDF_INDEX = {
       "date": "",
       "wir": "25758",
       "file": "Formworks Inspection for Top Slab at CIS50 P1120-P1121 at Clark Station WIR 025758.pdf",
-      "url": "https://drive.google.com/file/d/1oW2iQ8rJOonSx_s8KqyMk4-62kKMMvsL/view?usp=sharing",
-      "folder": "Cast In-Situ/CIS50-8/P1120-P1121"
+      "url": "https://drive.google.com/file/d/1ckNtiLh5o8FV1OdcNCMTUXoFVqCp4KRE/view?usp=sharing",
+      "folder": "Cast In-Situ/CIS50-8"
     },
     {
       "cis": "CIS50-8",
@@ -328,8 +328,8 @@ const CIS_PDF_INDEX = {
       "date": "",
       "wir": "25018",
       "file": "CIS50-8 Check Webs and Inner Walls at P1120-P1121- WIR 025018.pdf",
-      "url": "https://drive.google.com/file/d/1o4GVRfwonSzUOLuLFlnoQPjPAQ9m01Je/view?usp=sharing",
-      "folder": "Cast In-Situ/CIS50-8/P1120-P1121"
+      "url": "https://drive.google.com/file/d/1U7bLVKwXt92Mb03WG_YkGOrrTzaKJQ2W/view?usp=sharing",
+      "folder": "Cast In-Situ/CIS50-8"
     },
     {
       "cis": "CIS60-2",
@@ -339,26 +339,6 @@ const CIS_PDF_INDEX = {
       "wir": "",
       "file": "P-1130 to P-1131 (BOTTOM OF SOFFIT FORMWORK).pdf",
       "url": "https://drive.google.com/file/d/1T0Z7in-YivWloc_Ta02Anm19XTzodROZ/view?usp=sharing",
-      "folder": "Cast In-Situ/CIS60-02/P1130-P1131"
-    },
-    {
-      "cis": "CIS60-2",
-      "span": "P to 1130-P-1131",
-      "stage": "Bottom Slab / Blister / End Wall",
-      "date": "",
-      "wir": "",
-      "file": "P-1130 to P-1131 (Web, End Wall & Blister) As built.pdf",
-      "url": "https://drive.google.com/file/d/1Swa-7FJkcG36jYtQd-m7GHOb06GIvZCC/view?usp=sharing",
-      "folder": "Cast In-Situ/CIS60-02/P1130-P1131"
-    },
-    {
-      "cis": "CIS60-2",
-      "span": "P to 1130-P-1131",
-      "stage": "Bottom Slab / Blister / End Wall",
-      "date": "",
-      "wir": "",
-      "file": "P-1130 to P-1131 (Web, End Wall & Blister).pdf",
-      "url": "https://drive.google.com/file/d/1SvpXgao5V6bJsOXNYQgrD-K-ShvE-BQa/view?usp=sharing",
       "folder": "Cast In-Situ/CIS60-02/P1130-P1131"
     },
     {
@@ -419,6 +399,26 @@ const CIS_PDF_INDEX = {
       "wir": "",
       "file": "P1130-P1131  Top Slab Formworks.pdf",
       "url": "https://drive.google.com/file/d/1TEGBZmqj7zemnmEoqhwA5mt8KorXajsq/view?usp=sharing",
+      "folder": "Cast In-Situ/CIS60-02/P1130-P1131"
+    },
+    {
+      "cis": "CIS60-2",
+      "span": "P to 1130-P-1131",
+      "stage": "Web / Inner Wall",
+      "date": "",
+      "wir": "",
+      "file": "P-1130 to P-1131 (Web, End Wall & Blister) As built.pdf",
+      "url": "https://drive.google.com/file/d/1Swa-7FJkcG36jYtQd-m7GHOb06GIvZCC/view?usp=sharing",
+      "folder": "Cast In-Situ/CIS60-02/P1130-P1131"
+    },
+    {
+      "cis": "CIS60-2",
+      "span": "P to 1130-P-1131",
+      "stage": "Web / Inner Wall",
+      "date": "",
+      "wir": "",
+      "file": "P-1130 to P-1131 (Web, End Wall & Blister).pdf",
+      "url": "https://drive.google.com/file/d/1SvpXgao5V6bJsOXNYQgrD-K-ShvE-BQa/view?usp=sharing",
       "folder": "Cast In-Situ/CIS60-02/P1130-P1131"
     }
   ]

@@ -1917,7 +1917,7 @@ const ALIGNMENT_ASBUILT_OVERRIDES = {
 // PDF link before the date cell is exposed. Keep spot fixes here when the PDF
 // has been verified directly from the synced survey files.
 const MAINLINE_DATE_OVERRIDES = {
-  'P-1094': { pc_prepour: '29/May/26' },
+  'P-1094': { pc_prepour: '02/06/2026' },
 };
 
 const MAINLINE_PILE_DATE_OVERRIDES = {
@@ -2258,6 +2258,10 @@ function lookupMainlinePilePdf(pier, pileNo) {
 
 function repairMainlinePileRecords(records) {
   (records || []).forEach(record => {
+    const stageOverrides = MAINLINE_DATE_OVERRIDES[record.pier] || {};
+    Object.entries(stageOverrides).forEach(([key, value]) => {
+      if(value && !record[key]) record[key] = value;
+    });
     const overrides = MAINLINE_PILE_DATE_OVERRIDES[record.pier];
     if(!overrides) return;
     record.pileDates = record.pileDates || [];

@@ -3,37 +3,7 @@ const CIS_PDF_INDEX = {
   "records": [
     {
       "cis": "CIS40-14",
-      "span": "",
-      "stage": "Bottom Formwork",
-      "date": "",
-      "wir": "25759",
-      "file": "Formworks CIS40-14 Bottom Slab WIR 025759.pdf",
-      "url": "https://drive.google.com/file/d/1V7irzgbSivJg9nWMwEld5juaLhZFRiGQ/view?usp=sharing",
-      "folder": "Cast In-Situ/CIS40-14"
-    },
-    {
-      "cis": "CIS40-14",
-      "span": "",
-      "stage": "Other",
-      "date": "",
-      "wir": "",
-      "file": "NSCR-GCR-N03-ZWD-DRC-ST-001696 (Rev. C) - SHOP DRAWING.pdf",
-      "url": "https://drive.google.com/file/d/1CMe5VG8nWr-dQD_elz6L6PUTI3K8HGL8/view?usp=sharing",
-      "folder": "Cast In-Situ/CIS40-14"
-    },
-    {
-      "cis": "CIS40-14",
-      "span": "",
-      "stage": "Top Slab As-Built",
-      "date": "",
-      "wir": "37727",
-      "file": "CIS40-14 As-Built Top Slab WIR 037727.pdf",
-      "url": "https://drive.google.com/file/d/1_S4Ni8EPLSvnZ6hZhvceKbMHl-9GK7G2/view?usp=sharing",
-      "folder": "Cast In-Situ/CIS40-14"
-    },
-    {
-      "cis": "CIS40-14",
-      "span": "P to 1121-P-1122",
+      "span": "P-1121 to P-1122",
       "stage": "Bottom Formwork",
       "date": "",
       "wir": "",
@@ -43,7 +13,17 @@ const CIS_PDF_INDEX = {
     },
     {
       "cis": "CIS40-14",
-      "span": "P to 1121-P-1122",
+      "span": "P-1121 to P-1122",
+      "stage": "Bottom Formwork",
+      "date": "",
+      "wir": "25759",
+      "file": "Formworks CIS40-14 Bottom Slab WIR 025759.pdf",
+      "url": "https://drive.google.com/file/d/1V7irzgbSivJg9nWMwEld5juaLhZFRiGQ/view?usp=sharing",
+      "folder": "Cast In-Situ/CIS40-14"
+    },
+    {
+      "cis": "CIS40-14",
+      "span": "P-1121 to P-1122",
       "stage": "Bottom Slab / Blister / End Wall",
       "date": "",
       "wir": "25331",
@@ -53,7 +33,7 @@ const CIS_PDF_INDEX = {
     },
     {
       "cis": "CIS40-14",
-      "span": "P to 1121-P-1122",
+      "span": "P-1121 to P-1122",
       "stage": "Bottom Slab / Blister / End Wall",
       "date": "",
       "wir": "24985",
@@ -63,7 +43,27 @@ const CIS_PDF_INDEX = {
     },
     {
       "cis": "CIS40-14",
-      "span": "P to 1121-P-1122",
+      "span": "P-1121 to P-1122",
+      "stage": "Other",
+      "date": "",
+      "wir": "",
+      "file": "NSCR-GCR-N03-ZWD-DRC-ST-001696 (Rev. C) - SHOP DRAWING.pdf",
+      "url": "https://drive.google.com/file/d/1CMe5VG8nWr-dQD_elz6L6PUTI3K8HGL8/view?usp=sharing",
+      "folder": "Cast In-Situ/CIS40-14"
+    },
+    {
+      "cis": "CIS40-14",
+      "span": "P-1121 to P-1122",
+      "stage": "Top Slab As-Built",
+      "date": "",
+      "wir": "37727",
+      "file": "CIS40-14 As-Built Top Slab WIR 037727.pdf",
+      "url": "https://drive.google.com/file/d/1_S4Ni8EPLSvnZ6hZhvceKbMHl-9GK7G2/view?usp=sharing",
+      "folder": "Cast In-Situ/CIS40-14"
+    },
+    {
+      "cis": "CIS40-14",
+      "span": "P-1121 to P-1122",
       "stage": "Web / Inner Wall",
       "date": "",
       "wir": "25489",
@@ -73,7 +73,7 @@ const CIS_PDF_INDEX = {
     },
     {
       "cis": "CIS40-14",
-      "span": "P to 1121-P-1122",
+      "span": "P-1121 to P-1122",
       "stage": "Web / Inner Wall",
       "date": "",
       "wir": "25428",
@@ -83,7 +83,7 @@ const CIS_PDF_INDEX = {
     },
     {
       "cis": "CIS50-6",
-      "span": "P to 989-P-989",
+      "span": "P-989 to P-990",
       "stage": "Bottom Formwork",
       "date": "",
       "wir": "33766",
@@ -93,7 +93,7 @@ const CIS_PDF_INDEX = {
     },
     {
       "cis": "CIS50-6",
-      "span": "P to 989-P-989",
+      "span": "P-989 to P-990",
       "stage": "Bottom Formwork",
       "date": "",
       "wir": "33766",
@@ -103,7 +103,7 @@ const CIS_PDF_INDEX = {
     },
     {
       "cis": "CIS50-6",
-      "span": "P to 989-P-989",
+      "span": "P-989 to P-990",
       "stage": "Bottom Formwork",
       "date": "",
       "wir": "35730",
@@ -113,7 +113,7 @@ const CIS_PDF_INDEX = {
     },
     {
       "cis": "CIS50-6",
-      "span": "P to 989-P-989",
+      "span": "P-989 to P-990",
       "stage": "Bottom Slab / Blister / End Wall",
       "date": "",
       "wir": "35184",
@@ -123,7 +123,7 @@ const CIS_PDF_INDEX = {
     },
     {
       "cis": "CIS50-6",
-      "span": "P to 989-P-989",
+      "span": "P-989 to P-990",
       "stage": "Bottom Slab / Blister / End Wall",
       "date": "",
       "wir": "34912",
@@ -133,7 +133,7 @@ const CIS_PDF_INDEX = {
     },
     {
       "cis": "CIS50-6",
-      "span": "P to 989-P-989",
+      "span": "P-989 to P-990",
       "stage": "Duct Lower",
       "date": "",
       "wir": "34744",
@@ -143,7 +143,7 @@ const CIS_PDF_INDEX = {
     },
     {
       "cis": "CIS50-6",
-      "span": "P to 989-P-989",
+      "span": "P-989 to P-990",
       "stage": "Duct Lower",
       "date": "",
       "wir": "34536",
@@ -153,7 +153,7 @@ const CIS_PDF_INDEX = {
     },
     {
       "cis": "CIS50-6",
-      "span": "P to 989-P-989",
+      "span": "P-989 to P-990",
       "stage": "Top Slab Formwork",
       "date": "",
       "wir": "36781",
@@ -163,7 +163,7 @@ const CIS_PDF_INDEX = {
     },
     {
       "cis": "CIS50-8",
-      "span": "P to 1120-P-1121",
+      "span": "P-1120 to P-1121",
       "stage": "Bottom Formwork",
       "date": "",
       "wir": "25621",
@@ -173,7 +173,7 @@ const CIS_PDF_INDEX = {
     },
     {
       "cis": "CIS50-8",
-      "span": "P to 1120-P-1121",
+      "span": "P-1120 to P-1121",
       "stage": "Bottom Formwork",
       "date": "",
       "wir": "25621",
@@ -183,7 +183,7 @@ const CIS_PDF_INDEX = {
     },
     {
       "cis": "CIS50-8",
-      "span": "P to 1120-P-1121",
+      "span": "P-1120 to P-1121",
       "stage": "Bottom Formwork",
       "date": "",
       "wir": "",
@@ -193,7 +193,7 @@ const CIS_PDF_INDEX = {
     },
     {
       "cis": "CIS50-8",
-      "span": "P to 1120-P-1121",
+      "span": "P-1120 to P-1121",
       "stage": "Bottom Formwork",
       "date": "",
       "wir": "",
@@ -203,7 +203,7 @@ const CIS_PDF_INDEX = {
     },
     {
       "cis": "CIS50-8",
-      "span": "P to 1120-P-1121",
+      "span": "P-1120 to P-1121",
       "stage": "Bottom Slab / Blister / End Wall",
       "date": "",
       "wir": "25368",
@@ -213,7 +213,7 @@ const CIS_PDF_INDEX = {
     },
     {
       "cis": "CIS50-8",
-      "span": "P to 1120-P-1121",
+      "span": "P-1120 to P-1121",
       "stage": "Bottom Slab / Blister / End Wall",
       "date": "",
       "wir": "24907",
@@ -223,7 +223,7 @@ const CIS_PDF_INDEX = {
     },
     {
       "cis": "CIS50-8",
-      "span": "P to 1120-P-1121",
+      "span": "P-1120 to P-1121",
       "stage": "Bottom Slab / Blister / End Wall",
       "date": "",
       "wir": "",
@@ -233,7 +233,7 @@ const CIS_PDF_INDEX = {
     },
     {
       "cis": "CIS50-8",
-      "span": "P to 1120-P-1121",
+      "span": "P-1120 to P-1121",
       "stage": "Bottom Slab / Blister / End Wall",
       "date": "",
       "wir": "",
@@ -243,7 +243,7 @@ const CIS_PDF_INDEX = {
     },
     {
       "cis": "CIS50-8",
-      "span": "P to 1120-P-1121",
+      "span": "P-1120 to P-1121",
       "stage": "Shear Key / Seismic",
       "date": "",
       "wir": "",
@@ -253,7 +253,7 @@ const CIS_PDF_INDEX = {
     },
     {
       "cis": "CIS50-8",
-      "span": "P to 1120-P-1121",
+      "span": "P-1120 to P-1121",
       "stage": "Shear Key / Seismic",
       "date": "",
       "wir": "25764",
@@ -263,7 +263,7 @@ const CIS_PDF_INDEX = {
     },
     {
       "cis": "CIS50-8",
-      "span": "P to 1120-P-1121",
+      "span": "P-1120 to P-1121",
       "stage": "Shear Key / Seismic",
       "date": "",
       "wir": "",
@@ -273,7 +273,7 @@ const CIS_PDF_INDEX = {
     },
     {
       "cis": "CIS50-8",
-      "span": "P to 1120-P-1121",
+      "span": "P-1120 to P-1121",
       "stage": "Top Slab As-Built",
       "date": "",
       "wir": "",
@@ -283,7 +283,7 @@ const CIS_PDF_INDEX = {
     },
     {
       "cis": "CIS50-8",
-      "span": "P to 1120-P-1121",
+      "span": "P-1120 to P-1121",
       "stage": "Top Slab As-Built",
       "date": "",
       "wir": "26559",
@@ -293,7 +293,7 @@ const CIS_PDF_INDEX = {
     },
     {
       "cis": "CIS50-8",
-      "span": "P to 1120-P-1121",
+      "span": "P-1120 to P-1121",
       "stage": "Top Slab As-Built",
       "date": "",
       "wir": "38435",
@@ -303,7 +303,7 @@ const CIS_PDF_INDEX = {
     },
     {
       "cis": "CIS50-8",
-      "span": "P to 1120-P-1121",
+      "span": "P-1120 to P-1121",
       "stage": "Top Slab As-Built",
       "date": "",
       "wir": "",
@@ -313,7 +313,7 @@ const CIS_PDF_INDEX = {
     },
     {
       "cis": "CIS50-8",
-      "span": "P to 1120-P-1121",
+      "span": "P-1120 to P-1121",
       "stage": "Top Slab Formwork",
       "date": "",
       "wir": "25758",
@@ -323,7 +323,7 @@ const CIS_PDF_INDEX = {
     },
     {
       "cis": "CIS50-8",
-      "span": "P to 1120-P-1121",
+      "span": "P-1120 to P-1121",
       "stage": "Web / Inner Wall",
       "date": "",
       "wir": "25018",
@@ -333,7 +333,7 @@ const CIS_PDF_INDEX = {
     },
     {
       "cis": "CIS60-2",
-      "span": "P to 1130-P-1131",
+      "span": "P-1130 to P-1131",
       "stage": "Bottom Formwork",
       "date": "",
       "wir": "",
@@ -343,7 +343,7 @@ const CIS_PDF_INDEX = {
     },
     {
       "cis": "CIS60-2",
-      "span": "P to 1130-P-1131",
+      "span": "P-1130 to P-1131",
       "stage": "Other",
       "date": "",
       "wir": "",
@@ -353,7 +353,7 @@ const CIS_PDF_INDEX = {
     },
     {
       "cis": "CIS60-2",
-      "span": "P to 1130-P-1131",
+      "span": "P-1130 to P-1131",
       "stage": "Other",
       "date": "",
       "wir": "",
@@ -363,7 +363,7 @@ const CIS_PDF_INDEX = {
     },
     {
       "cis": "CIS60-2",
-      "span": "P to 1130-P-1131",
+      "span": "P-1130 to P-1131",
       "stage": "Top Slab As-Built",
       "date": "",
       "wir": "",
@@ -373,7 +373,7 @@ const CIS_PDF_INDEX = {
     },
     {
       "cis": "CIS60-2",
-      "span": "P to 1130-P-1131",
+      "span": "P-1130 to P-1131",
       "stage": "Top Slab Formwork",
       "date": "",
       "wir": "",
@@ -383,7 +383,7 @@ const CIS_PDF_INDEX = {
     },
     {
       "cis": "CIS60-2",
-      "span": "P to 1130-P-1131",
+      "span": "P-1130 to P-1131",
       "stage": "Top Slab Formwork",
       "date": "",
       "wir": "",
@@ -393,7 +393,7 @@ const CIS_PDF_INDEX = {
     },
     {
       "cis": "CIS60-2",
-      "span": "P to 1130-P-1131",
+      "span": "P-1130 to P-1131",
       "stage": "Top Slab Formwork",
       "date": "",
       "wir": "",
@@ -403,7 +403,7 @@ const CIS_PDF_INDEX = {
     },
     {
       "cis": "CIS60-2",
-      "span": "P to 1130-P-1131",
+      "span": "P-1130 to P-1131",
       "stage": "Web / Inner Wall",
       "date": "",
       "wir": "",
@@ -413,7 +413,7 @@ const CIS_PDF_INDEX = {
     },
     {
       "cis": "CIS60-2",
-      "span": "P to 1130-P-1131",
+      "span": "P-1130 to P-1131",
       "stage": "Web / Inner Wall",
       "date": "",
       "wir": "",

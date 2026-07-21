@@ -2292,20 +2292,25 @@ function annotatePortalPierGroups(records) {
   (records || []).forEach(parent => {
     const base = String(parent.pier || '').toUpperCase();
     if(!/^P-\d+$/.test(base)) return;
-    const left = byPier.get(base + 'L');
-    const right = byPier.get(base + 'R');
+    const usesNbSbLegs = base === 'P-1109';
+    const left = byPier.get(base + (usesNbSbLegs ? 'SB' : 'L'));
+    const right = byPier.get(base + (usesNbSbLegs ? 'NB' : 'R'));
     const parentOwnsHead = !!(parent.ph_prepour || parent.ph_postpour || parent.pdf_ph_pre || parent.pdf_ph_post ||
       parent.br_prepour || parent.br_postpour || parent.pdf_br_pre || parent.pdf_br_post);
     const legsOwnFoundations = !!(left && right && left.cfg && right.cfg);
-    if(parent.cfg || !parentOwnsHead || !legsOwnFoundations) return;
+    if((parent.cfg && !usesNbSbLegs) || !parentOwnsHead || !legsOwnFoundations) return;
     parent.portalGroup = base;
     parent.portalRole = 'head';
     left.portalGroup = base;
-    left.portalRole = 'left';
+    left.portalRole = usesNbSbLegs ? 'southbound' : 'left';
     right.portalGroup = base;
-    right.portalRole = 'right';
+    right.portalRole = usesNbSbLegs ? 'northbound' : 'right';
   });
   return records;
+}
+
+function isPortalLeg(record) {
+  return !!(record && ['left', 'right', 'northbound', 'southbound'].includes(record.portalRole));
 }
 
 function getCisIndexRecords() {
@@ -3619,7 +3624,7 @@ function renderTable(key) {
       return `<span style="font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--gold)">${pre} <span style="font-size:0.65rem">(Pre)</span></span>`;
     }
     tbody.innerHTML=paged.map(d=>`<tr>
-      <td class="mono" style="font-weight:600;white-space:nowrap">${d.pier}${d.portalRole ? `<div style="margin-top:3px"><span class="badge badge-na" style="font-size:0.58rem">${d.portalRole==='head'?'PORTAL HEAD':d.portalRole==='left'?'PORTAL L':'PORTAL R'}</span></div>` : ''}</td>
+      <td class="mono" style="font-weight:600;white-space:nowrap">${d.pier}${d.portalRole ? `<div style="margin-top:3px"><span class="badge badge-na" style="font-size:0.58rem">${d.portalRole==='head'?'PORTAL HEAD':d.portalRole==='left'?'PORTAL L':d.portalRole==='right'?'PORTAL R':d.portalRole==='northbound'?'PORTAL NB':'PORTAL SB'}</span></div>` : ''}</td>
       <td><span class="badge badge-na" style="font-size:0.68rem">${d.cfg||'—'}</span></td>
       <td style="text-align:center">${d.pileCount||'—'}</td>
       <td style="text-align:center">${d.pileDia?d.pileDia+' mm':'—'}</td>
@@ -3844,7 +3849,7 @@ function buildPendingAlerts() {
   DB.mainline.forEach(d => {
     jobs.forEach(j => {
       if(j.scope === 'leg' && d.portalRole === 'head') return;
-      if(j.scope === 'head' && (d.portalRole === 'left' || d.portalRole === 'right')) return;
+      if(j.scope === 'head' && isPortalLeg(d)) return;
       if(hasSheetData(d, j.pre, j.pdfPre) && !hasSheetData(d, j.post, j.pdfPost)) {
         alerts.mainline.push({ id: d.pier, job: j.label, date: sheetDataLabel(d, j.pre, j.pdfPre) });
       }
@@ -4190,7 +4195,7 @@ function updateOverview(){
   // ── MAINLINE OVERVIEW ────────────────────────────────────────
   const ml = DB.mainline;
   const mlFoundationRows = ml.filter(d=>d.portalRole !== 'head');
-  const mlHeadRows = ml.filter(d=>d.portalRole !== 'left' && d.portalRole !== 'right');
+  const mlHeadRows = ml.filter(d=>!isPortalLeg(d));
   const mlFoundationTotal = mlFoundationRows.length;
   const mlTotal = mlHeadRows.length;
   const portalCount = ml.filter(d=>d.portalRole === 'head').length;
@@ -4226,9 +4231,9 @@ function updateOverview(){
     if(d.portalRole !== 'head' && hasSheetData(d, 'pc_postpour', 'pdf_pc_post')) mlPCPost++;
     if(d.portalRole !== 'head' && hasSheetData(d, 'col_1st', 'pdf_col1_pre'))    mlCol1st++;
     if(d.portalRole !== 'head' && hasSheetData(d, 'col_2nd', 'pdf_col2_pre'))    mlCol2nd++;
-    if(d.portalRole !== 'left' && d.portalRole !== 'right' && hasSheetData(d, 'ph_prepour', 'pdf_ph_pre')) mlPH++;
-    if(d.portalRole !== 'left' && d.portalRole !== 'right' && hasSheetData(d, 'br_prepour', 'pdf_br_pre')) mlBR++;
-    if(d.portalRole !== 'left' && d.portalRole !== 'right' && hasSheetData(d, 'br_postpour', 'pdf_br_post')) mlCompleted++;
+    if(!isPortalLeg(d) && hasSheetData(d, 'ph_prepour', 'pdf_ph_pre')) mlPH++;
+    if(!isPortalLeg(d) && hasSheetData(d, 'br_prepour', 'pdf_br_pre')) mlBR++;
+    if(!isPortalLeg(d) && hasSheetData(d, 'br_postpour', 'pdf_br_post')) mlCompleted++;
   });
 
   const mlInspPct = mlTotalPiles>0 ? Math.round(mlInspected/mlTotalPiles*100) : 0;

@@ -1920,6 +1920,19 @@ const MAINLINE_DATE_OVERRIDES = {
   'P-1094': { pc_prepour: '02/06/2026' },
 };
 
+// Correct verified records when a Sheet row has values in the wrong stage
+// columns. These values come from the signed survey PDFs in the shared drive.
+const MAINLINE_RECORD_OVERRIDES = {
+  'P-1020': {
+    pc_prepour: '07/07/2026',
+    pc_postpour: '10/07/2026',
+    col_1st: '15/07/2026',
+    pdf_pc_pre: 'https://drive.google.com/file/d/1KANqjNkOaBSTkZ_JjUIsAXtpttkif4gr/view',
+    pdf_pc_post: 'https://drive.google.com/file/d/1t3cCpuGMAhvU5iIE38kHTfCb3hl5irFx/view',
+    pdf_col1_pre: 'https://drive.google.com/file/d/11hvYRUDvzQb026JpA6NZ-ud24JK861cx/view',
+  },
+};
+
 const MAINLINE_PILE_DATE_OVERRIDES = {
   'P-888': { 6: '03/07/2026' },
   'P-1064': { 2: '03/07/2026', 5: '03/07/2026' },
@@ -2261,6 +2274,10 @@ function repairMainlinePileRecords(records) {
     const stageOverrides = MAINLINE_DATE_OVERRIDES[record.pier] || {};
     Object.entries(stageOverrides).forEach(([key, value]) => {
       if(value && !record[key]) record[key] = value;
+    });
+    const recordOverrides = MAINLINE_RECORD_OVERRIDES[record.pier] || {};
+    Object.entries(recordOverrides).forEach(([key, value]) => {
+      if(value) record[key] = value;
     });
     const overrides = MAINLINE_PILE_DATE_OVERRIDES[record.pier];
     if(!overrides) return;
